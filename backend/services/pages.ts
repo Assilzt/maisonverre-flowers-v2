@@ -1,0 +1,99 @@
+import { z } from "zod";
+import {
+  DEFAULT_PRODUCT,
+  type ProductLandingConfig,
+} from "../../shared/catalog.js";
+import { sql } from "../repositories/connection.js";
+const imageUrl = z
+  .string()
+  .max(1500)
+  .refine(
+    v => v.startsWith("/images/") || /^https:\/\//.test(v),
+    "Use an image path or HTTPS URL"
+  );
+export const pageSchema = z.object({
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .max(80),
+  name: z.string().min(1).max(160),
+  shortName: z.string().min(1).max(100),
+  headline: z.string().min(1).max(300),
+  subheadline: z.string().max(500),
+  description: z.string().max(5000),
+  price: z.number().int().positive(),
+  compareAtPrice: z.number().int().positive().optional(),
+  currency: z.literal("دج"),
+  bundles: z
+    .array(
+      z.object({
+        quantity: z.number().int().min(1).max(100),
+        price: z.number().int().positive(),
+        label: z.string().min(1).max(100),
+      })
+    )
+    .min(1)
+    .max(6),
+  images: z
+    .array(
+      z.object({
+        src: imageUrl,
+        alt: z.string().max(300),
+        label: z.string().max(160),
+      })
+    )
+    .min(1)
+    .max(10),
+  features: z
+    .array(
+      z.object({
+        name: z.string().max(160),
+        emoji: z.string().max(20),
+        accent: z.string().max(100),
+        details: z.string().max(500),
+        area: z.string().max(160),
+      })
+    )
+    .max(12),
+  trustBadges: z.array(z.string().max(160)).max(8),
+  resultEyebrow: z.string().max(160),
+  resultTitle: z.string().max(300),
+  resultDescription: z.string().max(5000),
+  tracking: z.object({
+    contentId: z.string().min(1).max(160),
+    campaignName: z.string().min(1).max(160),
+  }),
+  freeShippingQuantity: z.number().int().positive().optional(),
+  sections: z
+    .object({
+      features: z.boolean().optional(),
+      results: z.boolean().optional(),
+      trust: z.boolean().optional(),
+      description: z.boolean().optional(),
+    })
+    .optional(),
+  sectionOrder: z
+    .array(z.enum(["image", "features", "results", "trust"]))
+    .length(4)
+    .refine(v => new Set(v).size === 4)
+    .optional(),
+});
+export function validatePage(input: unknown): ProductLandingConfig {
+  const page = pageSchema.parse(input);
+  if (new Set(page.bundles.map(b => b.quantity)).size !== page.bundles.length)
+    throw new Error("Duplicate bundle quantities");
+  page.price = page.bundles[0].price;
+  if (page.slug === DEFAULT_PRODUCT.slug)
+    page.tracking = DEFAULT_PRODUCT.tracking;
+  return page;
+}
+export async function publishedPage(
+  slug = DEFAULT_PRODUCT.slug
+): Promise<ProductLandingConfig | null> {
+  if (sql) {
+    const rows =
+      await sql`SELECT published FROM mv_landing_pages WHERE slug=${slug}`;
+    if (rows[0]?.published) return validatePage(rows[0].published);
+  }
+  return slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT : null;
+}

@@ -1,0 +1,54 @@
+{
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist/public",
+  "framework": "vite",
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 60
+    },
+    "api/render.ts": {
+      "maxDuration": 30,
+      "includeFiles": "dist/server-template.html"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/jobs",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/render?slug=flower-seed-mix"
+    },
+    {
+      "source": "/p/:slug",
+      "destination": "/api/render?slug=:slug"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

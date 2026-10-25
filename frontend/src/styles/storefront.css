@@ -1,0 +1,502 @@
+@config "../../tailwind.config.cjs";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 270 50% 95%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 20 14.3% 4.1%;
+    --radius: 0.45rem;
+    --chart-1: 262 70% 70%;
+    --chart-2: 262 75% 60%;
+    --chart-3: 262 80% 50%;
+    --chart-4: 262 83% 45%;
+    --chart-5: 262 85% 40%;
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 20 14.3% 4.1%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 270 50% 95%;
+    --sidebar-accent: 60 4.8% 95.9%;
+    --sidebar-accent-foreground: 24 9.8% 10%;
+    --sidebar-border: 20 5.9% 90%;
+    --sidebar-ring: 20 14.3% 4.1%;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 98%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 24 9.8% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 80% 55%;
+    --primary-foreground: 270 50% 95%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 100% / 10%;
+    --input: 0 0% 100% / 15%;
+    --ring: 24 5.4% 63.9%;
+    --chart-1: 262 70% 70%;
+    --chart-2: 262 75% 60%;
+    --chart-3: 262 80% 50%;
+    --chart-4: 262 83% 45%;
+    --chart-5: 262 85% 40%;
+    --sidebar: 24 9.8% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 262 75% 60%;
+    --sidebar-primary-foreground: 270 50% 95%;
+    --sidebar-accent: 12 6.5% 15.1%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 100% / 10%;
+    --sidebar-ring: 24 5.4% 63.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "IBM Plex Sans Arabic", "Inter", system-ui, sans-serif;
+  }
+
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+}
+
+/* Single flower-seed storefront presentation. */
+/* Flower-seed storefront layout. */
+.flower-landing {
+  min-height: 100vh;
+  background: #fff !important;
+  color: #0a0a0a;
+  font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+.flower-landing > .absolute.inset-0 {
+  display: none !important;
+}
+
+.flower-announcement {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  text-align: center;
+  background: #0a0a0a !important;
+  border-bottom: 1px solid #333;
+  color: #fff !important;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.flower-announcement span:nth-child(2) {
+  color: #888 !important;
+}
+
+.flower-content {
+  width: 100%;
+  max-width: 540px !important;
+  margin: 0 auto;
+  padding: 10px 16px 40px !important;
+}
+
+.flower-layout {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+}
+
+.flower-copy-card {
+  display: contents !important;
+}
+
+.flower-copy-card > h1 {
+  order: 2 !important;
+  width: 100%;
+  margin: 8px 0 0 !important;
+  color: #0a0a0a !important;
+  font-size: clamp(1.5rem, 5vw, 2rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: normal;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.flower-copy-card > h1 + div {
+  order: 3 !important;
+  width: 100%;
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #888 !important;
+}
+
+.flower-copy-card > h1 + div p {
+  color: #888 !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  line-height: 1.65;
+}
+
+.flower-copy-card > p {
+  order: 4 !important;
+  width: 100%;
+  margin: 4px 0 0 !important;
+  color: #888 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.flower-image-column {
+  order: 1 !important;
+  position: relative !important;
+  top: auto !important;
+  display: block !important;
+  width: 100%;
+  margin: 0 !important;
+  align-self: auto !important;
+}
+
+.flower-image-column > div {
+  overflow: visible !important;
+  width: 100%;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.flower-image-column img {
+  display: block;
+  width: 100%;
+  height: min(460px, 60vh) !important;
+  max-height: 460px;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  background: transparent !important;
+}
+
+@media (max-width: 767px) {
+  .flower-image-column img {
+    height: min(230px, 30vh) !important;
+    max-height: 230px;
+  }
+}
+
+.flower-image-column > div > div:last-of-type {
+  bottom: 0;
+  background: transparent !important;
+}
+
+.flower-features-grid {
+  order: 6;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 20px;
+}
+
+.flower-feature-item {
+  display: flex;
+  min-height: 82px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+}
+
+.flower-feature-item span {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.flower-feature-item strong {
+  color: #0a0a0a;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.flower-copy-card > div:has(> form) {
+  order: 7 !important;
+  width: 100%;
+  margin: 0 !important;
+  padding: 24px 20px !important;
+  border: 2px solid #0a0a0a !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 20px rgb(10 10 10 / 6%) !important;
+}
+
+.flower-order-header {
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e8e8e8;
+  text-align: center;
+}
+
+.flower-order-header h2 {
+  color: #0a0a0a;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.flower-copy-card form {
+  gap: 0 !important;
+}
+
+.flower-copy-card form > div {
+  margin-bottom: 16px !important;
+}
+
+.flower-copy-card form label {
+  color: #0a0a0a !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+}
+
+.flower-copy-card form input:not([type="radio"]),
+.flower-copy-card form select {
+  min-height: 50px;
+  border: 1.5px solid #e8e8e8 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #0a0a0a !important;
+  box-shadow: none !important;
+}
+
+.flower-copy-card form input:not([type="radio"]):focus,
+.flower-copy-card form select:focus {
+  border-color: #0a0a0a !important;
+  box-shadow: 0 0 0 3px rgb(10 10 10 / 8%) !important;
+}
+
+.flower-package-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 22px;
+  gap: 9px;
+  align-items: stretch;
+}
+
+.flower-package-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.flower-package-option {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 122px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 6px;
+  border: 1.5px solid #dce9e0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff 0%, #f8fcf9 100%);
+  color: #183b29;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.flower-package-option:hover:not(.selected) {
+  transform: translateY(-2px);
+  border-color: #8bb99b;
+  box-shadow: 0 8px 18px rgb(24 59 41 / 8%);
+}
+
+.flower-package-option:focus-visible {
+  outline: 3px solid #75b28b;
+  outline-offset: 3px;
+}
+
+.flower-package-option.selected {
+  border-color: #17633a;
+  background: linear-gradient(155deg, #227a49 0%, #145a34 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(23 99 58 / 22%);
+}
+
+.flower-package-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  line-height: 1;
+}
+
+.flower-package-count {
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.flower-package-unit {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.flower-package-price {
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.flower-package-price small {
+  font-size: 0.72em;
+  font-weight: 800;
+}
+
+.flower-package-detail {
+  color: #527260;
+  font-size: 0.65rem;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.flower-package-option.selected .flower-package-detail {
+  color: #e4f5e9;
+}
+
+.flower-package-detail-free {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #e5f6eb;
+  color: #17633a;
+}
+
+.flower-package-option.selected .flower-package-detail-free {
+  background: #fff;
+  color: #17633a;
+}
+
+@media (max-width: 380px) {
+  .flower-package-grid {
+    gap: 6px;
+  }
+
+  .flower-package-option {
+    min-height: 116px;
+    padding-inline: 3px;
+  }
+
+  .flower-package-price {
+    font-size: 0.9rem;
+  }
+
+  .flower-package-detail {
+    font-size: 0.58rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flower-package-option {
+    transition: none;
+  }
+}
+
+.flower-seed-note {
+  margin: -10px 0 16px;
+  color: #666;
+  font-size: 0.76rem;
+  line-height: 1.75;
+  text-align: right;
+}
+
+.flower-price-summary {
+  padding: 14px !important;
+  border-color: #b7dfc7 !important;
+  border-radius: 14px !important;
+  background: #f0faf4 !important;
+  text-align: right !important;
+}
+
+.flower-final-total {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+
+.flower-copy-card form > div:has(> p > span.text-xl) {
+  margin: 20px 0 16px !important;
+  border: 1px dashed #888 !important;
+  border-radius: 8px !important;
+  background: #f6f6f6 !important;
+}
+
+.flower-copy-card form button[type="submit"] {
+  min-height: 58px;
+  margin-top: 4px;
+  border: 2px solid #0a0a0a !important;
+  border-radius: 14px !important;
+  background: #0a0a0a !important;
+  box-shadow: none !important;
+  color: #fff !important;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.flower-copy-card form button[type="submit"]:hover {
+  background: #fff !important;
+  color: #0a0a0a !important;
+}
+
+@media (min-width: 768px) {
+  .flower-content {
+    max-width: 600px !important;
+  }
+}
