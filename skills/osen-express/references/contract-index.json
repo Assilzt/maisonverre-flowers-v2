@@ -1,0 +1,2901 @@
+{
+  "formatVersion": 1,
+  "source": {
+    "url": "https://backendmain.osenexpress.com/api-json",
+    "swagger": "https://backendmain.osenexpress.com/api",
+    "retrievedAt": "2026-10-26T17:47:07.142Z",
+    "openapi": "3.0.0",
+    "apiVersion": "1.0",
+    "sha256": "62f48e956b1c48b1832bf7a49a4ff5a4d903ed92b1fdd9c2a632eac48c3c6509"
+  },
+  "scope": "Osen merchant compatibility and EcoManager v2 contracts only; structural facts, no upstream examples or private data.",
+  "operations": [
+    {
+      "method": "POST",
+      "path": "/v1/users/auth/customers/validate-token",
+      "operationId": "CustomersAuthControllerV1_validateToken_v1",
+      "parameters": [],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidatePartnerTokenDto"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "valid": {
+                        "type": "boolean"
+                      },
+                      "scope": {
+                        "type": "string",
+                        "enum": ["MERCHANT", "PARTNER"]
+                      },
+                      "user_id": {
+                        "type": "string"
+                      },
+                      "store": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "phone": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "token": {
+                        "type": "object",
+                        "properties": {
+                          "issued_at": {
+                            "type": "string"
+                          },
+                          "expires_at": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "valid": {
+                        "type": "boolean"
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "security": []
+    },
+    {
+      "method": "POST",
+      "path": "/v2/ecomanager/auth/validate",
+      "operationId": "EcoManagerAuthV2Controller_validateToken_v2",
+      "parameters": [],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidateTokenDto"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/TokenValidResponseDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TokenInvalidResponseDto"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "security": []
+    },
+    {
+      "method": "POST",
+      "path": "/v2/ecomanager/orders",
+      "operationId": "EcoManagerOrdersV2Controller_createOrGetOrders_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "title": "Bulk create orders (array body)",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CreateOrderDto"
+                  }
+                },
+                {
+                  "$ref": "#/components/schemas/BulkGetOrdersDto"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "title": "Bulk create results",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/BulkCreateOrderResultDto"
+                    }
+                  },
+                  {
+                    "title": "Order details",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/GetOrderResponseDto"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {},
+        "401": {}
+      },
+      "security": []
+    },
+    {
+      "method": "DELETE",
+      "path": "/v2/ecomanager/orders",
+      "operationId": "EcoManagerOrdersV2Controller_bulkDelete_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BulkOperationResultDto"
+                }
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": []
+    },
+    {
+      "method": "POST",
+      "path": "/v2/ecomanager/orders/confirm",
+      "operationId": "EcoManagerOrdersV2Controller_bulkConfirm_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BulkOperationResultDto"
+                }
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": []
+    },
+    {
+      "method": "POST",
+      "path": "/v2/ecomanager/orders/labels",
+      "operationId": "EcoManagerOrdersV2Controller_getLabels_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GetLabelsDto"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetLabelsResponseDto"
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": []
+    },
+    {
+      "method": "GET",
+      "path": "/v2/ecomanager/communes",
+      "operationId": "EcoManagerCommunesV2Controller_getCommunes_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "wilaya_id",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "updated_since",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CommuneResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "400": {},
+        "401": {},
+        "403": {}
+      },
+      "security": []
+    },
+    {
+      "method": "GET",
+      "path": "/v2/ecomanager/wilayas",
+      "operationId": "EcoManagerWilayasV2Controller_getWilayas_v2",
+      "parameters": [
+        {
+          "name": "X-Api-Token",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "X-Api-Id",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WilayaResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "401": {},
+        "403": {}
+      },
+      "security": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/validate/token",
+      "operationId": "EcotrackValidateTokenV1Controller_validateToken",
+      "parameters": [
+        {
+          "name": "api_token",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "authorization",
+          "required": true,
+          "in": "header",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateTokenResponseDto"
+              }
+            }
+          }
+        }
+      },
+      "security": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/wilayas",
+      "operationId": "EcotrackWilayasV1Controller_getWilayas",
+      "parameters": [],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WilayaItemDto"
+                }
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/communes",
+      "operationId": "EcotrackCommunesV1Controller_getCommunes",
+      "parameters": [
+        {
+          "name": "wilaya_id",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/CommuneItemDto"
+                }
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/fees",
+      "operationId": "EcotrackFeesV1Controller_getFees",
+      "parameters": [],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeesResponseDto"
+              }
+            }
+          }
+        },
+        "401": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/create/order",
+      "operationId": "EcotrackOrdersV1Controller_createOrder",
+      "parameters": [],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateOrderSuccessDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BusinessErrorDto"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "422": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/create/orders",
+      "operationId": "EcotrackOrdersV1Controller_createOrders",
+      "parameters": [],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkCreateResultsDto"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/update/order",
+      "operationId": "EcotrackOrdersV1Controller_updateOrder",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {}
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OperationMessageDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BusinessErrorDto"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/delete/order",
+      "operationId": "EcotrackOrdersV1Controller_deleteOrder",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OperationMessageDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BusinessErrorDto"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/valid/order",
+      "operationId": "EcotrackOrdersV1Controller_validOrder",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "ask_collection",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationMessageDto"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/valid/returns",
+      "operationId": "EcotrackOrdersV1Controller_validReturns",
+      "parameters": [
+        {
+          "name": "trackings",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidReturnsResponseDto"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/order/label",
+      "operationId": "EcotrackOrdersV1Controller_getLabel",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {},
+        "422": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/add/maj",
+      "operationId": "EcotrackTrackingV1Controller_addMaj",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "content",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationMessageDto"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/maj",
+      "operationId": "EcotrackTrackingV1Controller_getMaj",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MajItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ask/for/order/return",
+      "operationId": "EcotrackTrackingV1Controller_askForReturn",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OperationMessageDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BusinessErrorDto"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/tracking/info",
+      "operationId": "EcotrackTrackingV1Controller_getTrackingInfo",
+      "parameters": [
+        {
+          "name": "tracking",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackingInfoDto"
+              }
+            }
+          }
+        },
+        "422": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/trackings/info",
+      "operationId": "EcotrackTrackingV1Controller_getTrackingsInfo",
+      "parameters": [
+        {
+          "name": "trackings[]",
+          "required": true,
+          "in": "query",
+          "schema": {}
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/TrackingsInfoEntryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/orders",
+      "operationId": "EcotrackTrackingV1Controller_getOrders",
+      "parameters": [
+        {
+          "name": "page",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "start_date",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "end_date",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tracking",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/orders/status",
+      "operationId": "EcotrackTrackingV1Controller_getOrdersStatus",
+      "parameters": [
+        {
+          "name": "trackings",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "status",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {}
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/get/products/list",
+      "operationId": "EcotrackProductsV1Controller_getProductsList",
+      "parameters": [
+        {
+          "name": "page",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": null,
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductsListResponseDto"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearer": []
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1",
+      "operationId": "EcotrackRateLimitV1Controller_index",
+      "parameters": [],
+      "requestBody": null,
+      "responses": {
+        "200": {},
+        "429": {}
+      },
+      "security": []
+    }
+  ],
+  "schemas": {
+    "ValidatePartnerTokenDto": {
+      "type": "object",
+      "properties": {
+        "api_token": {
+          "type": "string"
+        }
+      },
+      "required": ["api_token"]
+    },
+    "ValidateTokenDto": {
+      "type": "object",
+      "properties": {
+        "api_id": {
+          "type": "string"
+        },
+        "api_token": {
+          "type": "string"
+        }
+      },
+      "required": ["api_id", "api_token"]
+    },
+    "TokenValidResponseDto": {
+      "type": "object",
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["MERCHANT", "PARTNER"]
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "store": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/TokenStoreDto"
+            }
+          ]
+        },
+        "token": {
+          "$ref": "#/components/schemas/TokenMetaDto"
+        }
+      },
+      "required": ["valid", "scope", "user_id", "token"]
+    },
+    "TokenInvalidResponseDto": {
+      "type": "object",
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": ["valid", "error"]
+    },
+    "CreateOrderDto": {
+      "type": "object",
+      "properties": {
+        "order_id": {
+          "type": "string"
+        },
+        "recipient_name": {
+          "type": "string"
+        },
+        "recipient_phone": {
+          "type": "string"
+        },
+        "recipient_phone_2": {
+          "type": "string",
+          "nullable": true
+        },
+        "address": {
+          "type": "string"
+        },
+        "wilaya_id": {
+          "type": "string"
+        },
+        "commune_id": {
+          "type": "string"
+        },
+        "is_stopdesk": {
+          "type": "boolean"
+        },
+        "center_id": {
+          "type": "string",
+          "nullable": true
+        },
+        "cod_amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "weight_kg": {
+          "type": "number",
+          "minimum": 0
+        },
+        "length_cm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "width_cm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height_cm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "note": {
+          "type": "string",
+          "nullable": true
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/OrderItemDto"
+          }
+        }
+      },
+      "required": [
+        "order_id",
+        "recipient_name",
+        "recipient_phone",
+        "address",
+        "wilaya_id",
+        "commune_id",
+        "is_stopdesk",
+        "cod_amount"
+      ]
+    },
+    "BulkGetOrdersDto": {
+      "type": "object",
+      "properties": {
+        "trackings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["trackings"]
+    },
+    "BulkCreateOrderResultDto": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "number"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "string",
+          "nullable": true
+        },
+        "error_message": {
+          "type": "string",
+          "nullable": true
+        },
+        "error_code": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["index", "success"]
+    },
+    "GetOrderResponseDto": {
+      "type": "object",
+      "properties": {
+        "tracking": {
+          "type": "string"
+        },
+        "order_id": {
+          "type": "string"
+        },
+        "recipient_name": {
+          "type": "string"
+        },
+        "recipient_phone": {
+          "type": "string"
+        },
+        "recipient_phone_2": {
+          "type": "string",
+          "nullable": true
+        },
+        "address": {
+          "type": "string"
+        },
+        "wilaya_id": {
+          "type": "string"
+        },
+        "commune_id": {
+          "type": "string"
+        },
+        "is_stopdesk": {
+          "type": "boolean"
+        },
+        "center_id": {
+          "type": "string",
+          "nullable": true
+        },
+        "cod_amount": {
+          "type": "number"
+        },
+        "weight_kg": {
+          "type": "number",
+          "nullable": true
+        },
+        "length_cm": {
+          "type": "number",
+          "nullable": true
+        },
+        "width_cm": {
+          "type": "number",
+          "nullable": true
+        },
+        "height_cm": {
+          "type": "number",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/OrderItemResponseDto"
+          }
+        },
+        "last_status": {
+          "$ref": "#/components/schemas/OrderStatusDto"
+        },
+        "last_alert": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/OrderStatusDto"
+            }
+          ]
+        },
+        "delivery_fee": {
+          "type": "number"
+        },
+        "is_return": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tracking",
+        "order_id",
+        "recipient_name",
+        "recipient_phone",
+        "address",
+        "wilaya_id",
+        "commune_id",
+        "is_stopdesk",
+        "cod_amount",
+        "items",
+        "last_status",
+        "delivery_fee",
+        "is_return"
+      ]
+    },
+    "BulkOperationResultDto": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "number"
+        },
+        "tracking": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "error_message": {
+          "type": "string",
+          "nullable": true
+        },
+        "error_code": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["index", "tracking", "success"]
+    },
+    "GetLabelsDto": {
+      "type": "object",
+      "properties": {
+        "trackings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["trackings"]
+    },
+    "GetLabelsResponseDto": {
+      "type": "object",
+      "properties": {
+        "file_url": {
+          "type": "string"
+        }
+      },
+      "required": ["file_url"]
+    },
+    "CommuneResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "eco_commune_id": {
+          "type": "string",
+          "nullable": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "wilaya_id": {
+          "type": "string"
+        },
+        "wilaya_name": {
+          "type": "string"
+        },
+        "has_stopdesk": {
+          "type": "boolean"
+        },
+        "has_homedelivery": {
+          "type": "boolean"
+        },
+        "centers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/RelayCenter"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "wilaya_id",
+        "wilaya_name",
+        "has_stopdesk",
+        "has_homedelivery",
+        "centers"
+      ]
+    },
+    "WilayaResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "has_stopdesk": {
+          "type": "boolean"
+        },
+        "has_homedelivery": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "name", "has_stopdesk", "has_homedelivery"]
+    },
+    "ValidateTokenResponseDto": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string",
+          "enum": ["VALID_TOKEN", "INVALID_TOKEN", "TOKEN_NOT_ALLOWED"]
+        }
+      },
+      "required": ["success", "message"]
+    },
+    "WilayaItemDto": {
+      "type": "object",
+      "properties": {
+        "wilaya_id": {
+          "type": "number"
+        },
+        "wilaya_name": {
+          "type": "string"
+        }
+      },
+      "required": ["wilaya_id", "wilaya_name"]
+    },
+    "CommuneItemDto": {
+      "type": "object",
+      "properties": {
+        "nom": {
+          "type": "string"
+        },
+        "wilaya_id": {
+          "type": "number"
+        },
+        "code_postal": {
+          "type": "string"
+        },
+        "has_stop_desk": {
+          "type": "number",
+          "enum": [0, 1]
+        }
+      },
+      "required": ["nom", "wilaya_id", "code_postal", "has_stop_desk"]
+    },
+    "FeesResponseDto": {
+      "type": "object",
+      "properties": {
+        "livraison": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FeeItemDto"
+          }
+        },
+        "pickup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FeeItemDto"
+          }
+        },
+        "echnage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FeeItemDto"
+          }
+        },
+        "recouvrement": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FeeItemDto"
+          }
+        },
+        "retours": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FeeItemDto"
+          }
+        }
+      },
+      "required": ["livraison", "pickup", "echnage", "recouvrement", "retours"]
+    },
+    "BulkCreateResultsDto": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "object"
+        }
+      },
+      "required": ["results"]
+    },
+    "OperationMessageDto": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": ["success", "message"]
+    },
+    "ValidReturnsResponseDto": {
+      "type": "object",
+      "properties": {
+        "returned": {
+          "type": "string",
+          "enum": ["success", "fail"]
+        }
+      },
+      "required": ["returned"]
+    },
+    "MajItemDto": {
+      "type": "object",
+      "properties": {
+        "remarque": {
+          "type": "string"
+        },
+        "station": {
+          "type": "string"
+        },
+        "livreur": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "tracking": {
+          "type": "string"
+        }
+      },
+      "required": ["remarque", "station", "livreur", "created_at", "tracking"]
+    },
+    "TrackingInfoDto": {
+      "type": "object",
+      "properties": {
+        "recipientName": {
+          "type": "string"
+        },
+        "shippedBy": {
+          "type": "string"
+        },
+        "originCity": {
+          "type": "number"
+        },
+        "destLocationCity": {
+          "type": "number"
+        },
+        "activity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ActivityItemDto"
+          }
+        }
+      },
+      "required": [
+        "recipientName",
+        "shippedBy",
+        "originCity",
+        "destLocationCity",
+        "activity"
+      ]
+    },
+    "TrackingsInfoEntryDto": {
+      "type": "object",
+      "properties": {
+        "recipientName": {
+          "type": "string"
+        },
+        "shippedBy": {
+          "type": "string"
+        },
+        "originCity": {
+          "type": "number"
+        },
+        "destLocationCity": {
+          "type": "number"
+        },
+        "activity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ActivityItemDto"
+          }
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "recipientName",
+        "shippedBy",
+        "originCity",
+        "destLocationCity",
+        "activity",
+        "status"
+      ]
+    },
+    "ProductsListResponseDto": {
+      "type": "object",
+      "properties": {
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProductItemDto"
+          }
+        },
+        "pagination": {
+          "$ref": "#/components/schemas/ProductsPaginationDto"
+        }
+      },
+      "required": ["products", "pagination"]
+    },
+    "TokenStoreDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "TokenMetaDto": {
+      "type": "object",
+      "properties": {
+        "issued_at": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["issued_at"]
+    },
+    "OrderItemDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "trackingId": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PLACED",
+            "AWAITING_PICKUP",
+            "PICKED_UP",
+            "PICKUP_ON_GOING",
+            "EXCHANGE_COLLECTED",
+            "EXCHANGE_FAILED",
+            "EXCHANGE_RETURNED",
+            "PENDING_RECEPTION",
+            "AWAITING_TRANSIT",
+            "IN_TRANSIT",
+            "READY_FOR_DELIVERY",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "PAID",
+            "SETTLED",
+            "CANCELED",
+            "FAILED",
+            "AWAITING_RETRIEVAL",
+            "IN_RETURN",
+            "READY_FOR_RETURN",
+            "RETURNED",
+            "RETURN_ARRIVED",
+            "RETURN_COLLECTED",
+            "OUT_OF_STOCK",
+            "PENDING_PREPARATION",
+            "IN_PREPARATION",
+            "UNPACKED",
+            "AWAITING_HANDOFF",
+            "RETURN_AWAITING_HANDOFF",
+            "READY_TO_UNPACK"
+          ],
+          "type": "string"
+        },
+        "placementStatus": {
+          "enum": ["PLACED", "VALIDATED", "ACCEPTED", "CANCELED", "DELETED"],
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/components/schemas/TargetResponseDto"
+        },
+        "initiator": {
+          "$ref": "#/components/schemas/InitiatorResponseDto"
+        },
+        "store": {
+          "$ref": "#/components/schemas/StoreResponseDto"
+        },
+        "operation": {
+          "$ref": "#/components/schemas/OperationResponseDto"
+        },
+        "parcel": {
+          "$ref": "#/components/schemas/ParcelResponseDto"
+        },
+        "cashCollection": {
+          "$ref": "#/components/schemas/CashCollectionResponseDto"
+        },
+        "delivery": {
+          "$ref": "#/components/schemas/DeliveryResponseDto"
+        },
+        "relay": {
+          "$ref": "#/components/schemas/RelayResponseDto"
+        },
+        "pricing": {
+          "$ref": "#/components/schemas/PricingResponseDto"
+        },
+        "payment": {
+          "$ref": "#/components/schemas/PaymentResponseDto"
+        },
+        "tracking": {
+          "$ref": "#/components/schemas/TrackingResponseDto"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "linkedOrderId": {
+          "type": "string"
+        },
+        "primary": {
+          "type": "boolean"
+        },
+        "revertable": {
+          "type": "boolean"
+        },
+        "revertableSetAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "revertableReason": {
+          "type": "string",
+          "nullable": true
+        },
+        "secondaryOrderId": {
+          "type": "string",
+          "nullable": true
+        },
+        "partnerId": {
+          "type": "string"
+        },
+        "pickupStatus": {
+          "type": "string"
+        },
+        "fulfillmentStatus": {
+          "type": "string"
+        },
+        "quality": {
+          "$ref": "#/components/schemas/OrderQualityResponseDto"
+        },
+        "mainOrder": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/RelatedOrderDto"
+            }
+          ]
+        },
+        "originalOrder": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/RelatedOrderDto"
+            }
+          ]
+        },
+        "secondaryOrder": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/RelatedOrderDto"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "trackingId",
+        "status",
+        "target",
+        "operation",
+        "createdAt"
+      ]
+    },
+    "OrderItemResponseDto": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "sku": {
+          "type": "string",
+          "nullable": true
+        },
+        "option": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["title", "quantity"]
+    },
+    "OrderStatusDto": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "required": ["code", "label", "date"]
+    },
+    "RelayCenter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "FeeItemDto": {
+      "type": "object",
+      "properties": {
+        "wilaya_id": {
+          "type": "number"
+        },
+        "tarif": {
+          "type": "string"
+        },
+        "tarif_stopdesk": {
+          "type": "string"
+        }
+      },
+      "required": ["wilaya_id", "tarif", "tarif_stopdesk"]
+    },
+    "ActivityItemDto": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "scanLocation": {
+          "type": "string"
+        }
+      },
+      "required": ["date", "time", "status"]
+    },
+    "ProductItemDto": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "type": "string"
+        },
+        "barcode": {
+          "type": "string",
+          "nullable": true
+        },
+        "title": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "number",
+          "enum": [0, 1]
+        },
+        "image": {
+          "type": "string",
+          "nullable": true
+        },
+        "stock_disponible": {
+          "type": "number"
+        },
+        "stock_reserve": {
+          "type": "number"
+        },
+        "stock_phisique": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "reference",
+        "barcode",
+        "title",
+        "is_active",
+        "image",
+        "stock_disponible",
+        "stock_reserve",
+        "stock_phisique"
+      ]
+    },
+    "ProductsPaginationDto": {
+      "type": "object",
+      "properties": {
+        "current_page": {
+          "type": "number"
+        },
+        "last_page": {
+          "type": "number"
+        },
+        "per_page": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "from": {
+          "type": "number",
+          "nullable": true
+        },
+        "to": {
+          "type": "number",
+          "nullable": true
+        }
+      },
+      "required": [
+        "current_page",
+        "last_page",
+        "per_page",
+        "total",
+        "from",
+        "to"
+      ]
+    },
+    "TargetResponseDto": {
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "phoneNumberPrimary": {
+          "type": "string"
+        },
+        "phoneNumberSecondary": {
+          "type": "string"
+        },
+        "municipality": {
+          "$ref": "#/components/schemas/MunicipalityWithProvinceResponseDto"
+        },
+        "isInaccurateMunicipality": {
+          "type": "boolean"
+        }
+      },
+      "required": ["fullName", "phoneNumberPrimary"]
+    },
+    "InitiatorResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "phoneNumberPrimary": {
+          "type": "string"
+        },
+        "municipality": {
+          "$ref": "#/components/schemas/MunicipalityWithProvinceResponseDto"
+        }
+      }
+    },
+    "StoreResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phoneNumberPrimary": {
+          "type": "string"
+        },
+        "municipality": {
+          "$ref": "#/components/schemas/MunicipalityWithProvinceResponseDto"
+        }
+      }
+    },
+    "OperationResponseDto": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": ["DELIVERY", "COLLECTION", "EXCHANGE", "REFUND"],
+          "type": "string"
+        },
+        "deliveryType": {
+          "enum": ["STOPDESK", "DOORSTEP"],
+          "type": "string"
+        },
+        "serviceType": {
+          "enum": ["ECO", "STANDARD", "EXPRESS"],
+          "type": "string"
+        },
+        "fulfillmentType": {
+          "enum": ["MANUAL", "FROM_STOCK"],
+          "type": "string"
+        }
+      },
+      "required": ["type", "deliveryType"]
+    },
+    "ParcelResponseDto": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "fragile": {
+          "type": "boolean"
+        },
+        "openable": {
+          "type": "boolean"
+        },
+        "tryable": {
+          "type": "boolean"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "refrenceId": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "CashCollectionResponseDto": {
+      "type": "object",
+      "properties": {
+        "totalPostTarget": {
+          "type": "number"
+        },
+        "totalPostInitiator": {
+          "type": "number"
+        },
+        "totalPreTarget": {
+          "type": "number"
+        },
+        "totalPreInitiator": {
+          "type": "number"
+        }
+      }
+    },
+    "DeliveryResponseDto": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "PENDING_ARRIVAL",
+            "READY_FOR_DELIVERY",
+            "ASSIGNED",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "FAILED",
+            "COMPLETED",
+            "AWAITING_RETRIEVAL",
+            "RETRIEVED",
+            "READY_FOR_RETURN",
+            "RETURN_ARRIVED",
+            "RETURN_COLLECTED",
+            "EXCHANGE_COLLECTED",
+            "EXCHANGE_FAILED"
+          ]
+        },
+        "exchangePrimary": {
+          "type": "boolean"
+        },
+        "assignedTo": {
+          "$ref": "#/components/schemas/DeliveryAgentResponseDto"
+        },
+        "assignedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "deliveredAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "completedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "failedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "dueDeliveryDate": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "suspended": {
+          "type": "boolean"
+        },
+        "suspendedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "failedWithAgent": {
+          "type": "boolean"
+        },
+        "failedWithAgentAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "deliveryAttempts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/DeliveryAttemptItemDto"
+          }
+        },
+        "latestDeliveryAttempt": {
+          "$ref": "#/components/schemas/DeliveryAttemptItemDto"
+        },
+        "followUps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/FollowUpNoteItemDto"
+          }
+        },
+        "latestFollowUp": {
+          "$ref": "#/components/schemas/FollowUpNoteItemDto"
+        }
+      },
+      "required": ["status"]
+    },
+    "RelayResponseDto": {
+      "type": "object",
+      "properties": {
+        "sourceStopdesk": {
+          "$ref": "#/components/schemas/FacilityResponseDto"
+        },
+        "destStopdesk": {
+          "$ref": "#/components/schemas/FacilityResponseDto"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "PENDING_ARRIVAL",
+            "AWAITING_TRANSIT",
+            "IN_TRANSIT",
+            "AT_FINAL_DESTINATION",
+            "EXITED"
+          ]
+        },
+        "isReturn": {
+          "type": "boolean"
+        },
+        "currentLocation": {
+          "type": "string"
+        },
+        "currentLocationType": {
+          "type": "string"
+        },
+        "currentFacility": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/FacilityResponseDto"
+            }
+          ]
+        },
+        "nextDestination": {
+          "type": "string"
+        },
+        "nextDestinationType": {
+          "type": "string"
+        },
+        "receivedAt": {
+          "format": "date-time",
+          "type": "string"
+        }
+      }
+    },
+    "PricingResponseDto": {
+      "type": "object",
+      "properties": {
+        "basePrice": {
+          "type": "number"
+        },
+        "totalPrice": {
+          "type": "number"
+        },
+        "lmdFee": {
+          "type": "number"
+        },
+        "baseLmdFee": {
+          "type": "number"
+        },
+        "extraLmdFee": {
+          "type": "number"
+        },
+        "extraLmdFeeReason": {
+          "type": "string"
+        },
+        "additionalVolumeCharges": {
+          "type": "number"
+        },
+        "additionalWeightCharges": {
+          "type": "number"
+        },
+        "packagingFees": {
+          "type": "number"
+        }
+      }
+    },
+    "PaymentResponseDto": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "leftToPayFromTarget": {
+          "type": "number"
+        },
+        "paidToTarget": {
+          "type": "number"
+        },
+        "paidFromTarget": {
+          "type": "number"
+        },
+        "paidToStopDesk": {
+          "type": "number"
+        },
+        "paidFromStopDesk": {
+          "type": "number"
+        },
+        "paidToDriver": {
+          "type": "number"
+        },
+        "paidFromDriver": {
+          "type": "number"
+        },
+        "paidToStore": {
+          "type": "number"
+        },
+        "paidFromStore": {
+          "type": "number"
+        },
+        "merchantCredit": {
+          "type": "number"
+        },
+        "merchantReadytoWithdrawCredit": {
+          "type": "number"
+        }
+      },
+      "required": ["status"]
+    },
+    "TrackingResponseDto": {
+      "type": "object",
+      "properties": {
+        "lastEventAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "lastEventBy": {
+          "$ref": "#/components/schemas/TrackingLastEventByDto"
+        }
+      }
+    },
+    "OrderQualityResponseDto": {
+      "type": "object",
+      "properties": {
+        "alertsCount": {
+          "type": "number"
+        },
+        "unresolvedAlertsCount": {
+          "type": "number"
+        },
+        "latestAlert": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/OrderAlertSummaryDto"
+            }
+          ]
+        },
+        "highestAlert": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/OrderAlertSummaryDto"
+            }
+          ]
+        }
+      },
+      "required": ["alertsCount", "unresolvedAlertsCount"]
+    },
+    "RelatedOrderDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "trackingId": {
+          "type": "string",
+          "nullable": true
+        },
+        "status": {
+          "nullable": true,
+          "enum": [
+            "PLACED",
+            "AWAITING_PICKUP",
+            "PICKED_UP",
+            "PICKUP_ON_GOING",
+            "EXCHANGE_COLLECTED",
+            "EXCHANGE_FAILED",
+            "EXCHANGE_RETURNED",
+            "PENDING_RECEPTION",
+            "AWAITING_TRANSIT",
+            "IN_TRANSIT",
+            "READY_FOR_DELIVERY",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "PAID",
+            "SETTLED",
+            "CANCELED",
+            "FAILED",
+            "AWAITING_RETRIEVAL",
+            "IN_RETURN",
+            "READY_FOR_RETURN",
+            "RETURNED",
+            "RETURN_ARRIVED",
+            "RETURN_COLLECTED",
+            "OUT_OF_STOCK",
+            "PENDING_PREPARATION",
+            "IN_PREPARATION",
+            "UNPACKED",
+            "AWAITING_HANDOFF",
+            "RETURN_AWAITING_HANDOFF",
+            "READY_TO_UNPACK"
+          ],
+          "type": "string"
+        },
+        "placementStatus": {
+          "nullable": true,
+          "enum": ["PLACED", "VALIDATED", "ACCEPTED", "CANCELED", "DELETED"],
+          "type": "string"
+        },
+        "primary": {
+          "type": "boolean"
+        },
+        "operation": {
+          "$ref": "#/components/schemas/RelatedOrderOperationDto"
+        },
+        "parcel": {
+          "$ref": "#/components/schemas/RelatedOrderParcelDto"
+        },
+        "target": {
+          "$ref": "#/components/schemas/RelatedOrderTargetDto"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": ["id"]
+    },
+    "MunicipalityWithProvinceResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name_latin": {
+          "type": "string"
+        },
+        "name_arabic": {
+          "type": "string"
+        },
+        "province": {
+          "nullable": true,
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvinceResponseDto"
+            }
+          ]
+        }
+      },
+      "required": ["id", "name_latin", "name_arabic"]
+    },
+    "DeliveryAgentResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "DeliveryAttemptItemDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "WRONG_INFORMATION",
+            "CLIENT_WANTS_TO_TALK_TO_MERCHANT",
+            "CLIENT_NOT_AVAILABLE",
+            "CLIENT_REQUESTED_TO_RESCHEDULE",
+            "CLIENT_RESPONDED_AND_CONFIRMED",
+            "GOODS_REFUSED_BY_CLIENT",
+            "CLIENT_NO_ANSWER_DAY_1",
+            "CLIENT_NO_ANSWER_DAY_2",
+            "CLIENT_NO_ANSWER_DAY_3",
+            "WRONG_PHONE_NUMBER",
+            "WRONG_QUANTITY",
+            "GOODS_DAMAGED",
+            "CLIENT_UNABLE_TO_PAY",
+            "CLIENT_REQUESTED_PRICE_CHANGE",
+            "PARCEL_ARRIVED_DELIVERY_RESCHEDULED",
+            "OTHER"
+          ],
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "position": {
+          "type": "number"
+        },
+        "isLatest": {
+          "type": "boolean"
+        },
+        "dueDeliveryDate": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "markedAsFailed": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "firstName": {
+              "type": "string"
+            },
+            "lastName": {
+              "type": "string"
+            },
+            "phoneNumber": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "type"]
+        }
+      },
+      "required": ["id", "reason", "createdAt"]
+    },
+    "FollowUpNoteItemDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "CLIENT_RECONTACTED",
+            "PRICE_CHANGE_REQUEST",
+            "CLIENT_CLAIMS_DELIVERED",
+            "RESCHEDULE_INFO",
+            "DELIVERY_CONFLICT",
+            "CHANGE_DELIVERY_TYPE",
+            "WRONG_PHONE_NUMBER",
+            "CONTACT_CLIENT",
+            "RETURN_REQUEST",
+            "FREE_REQUEST"
+          ],
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "position": {
+          "type": "number"
+        },
+        "isLatest": {
+          "type": "boolean"
+        },
+        "dueDeliveryDate": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "requestedPrice": {
+          "type": "number"
+        },
+        "priceChangeAccepted": {
+          "type": "boolean"
+        },
+        "requestedDeliveryType": {
+          "type": "string"
+        },
+        "correctedPhoneNumber": {
+          "type": "string"
+        },
+        "returnReason": {
+          "type": "string"
+        },
+        "visibility": {
+          "enum": ["ALL", "INTERNAL"],
+          "type": "string"
+        },
+        "status": {
+          "nullable": true,
+          "enum": ["UNRESOLVED", "AKNOWLEDGED", "RESOLVED", "BLOCKED"],
+          "type": "string"
+        },
+        "score": {
+          "type": "number",
+          "nullable": true
+        },
+        "assignedFacilityId": {
+          "type": "string",
+          "nullable": true
+        },
+        "assignedFacilityType": {
+          "type": "string",
+          "nullable": true
+        },
+        "dueAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "escalatedAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "acknowledgedBy": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "type"]
+        },
+        "acknowledgedAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "resolvedBy": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "type"]
+        },
+        "resolvedAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "blockedBy": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "type"]
+        },
+        "blockedAt": {
+          "format": "date-time",
+          "type": "string",
+          "nullable": true
+        },
+        "resolutionNote": {
+          "type": "string",
+          "nullable": true
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "firstName": {
+              "type": "string"
+            },
+            "lastName": {
+              "type": "string"
+            },
+            "phoneNumber": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "type"]
+        }
+      },
+      "required": ["id", "type", "createdAt"]
+    },
+    "FacilityResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "municipality": {
+          "$ref": "#/components/schemas/MunicipalityWithProvinceResponseDto"
+        }
+      }
+    },
+    "TrackingLastEventByDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "OrderAlertSummaryDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FAILED_DELIVERY_ATTEMPT",
+            "PARCEL_AGING",
+            "PARCEL_AGING_AT_FINAL_FACILITY",
+            "PARCEL_AGING_WITH_DELIVERY_AGENT",
+            "DELAY",
+            "PARCEL_LOST",
+            "PAYMENT_ISSUE",
+            "CUSTOM",
+            "READY_NOT_ASSIGNED",
+            "IN_TRANSIT_AGING",
+            "ASSIGNED_NOT_OUT",
+            "OFD_ATTEMPT_STALE",
+            "DELIVERED_NOT_FINALIZED",
+            "FULFILLMENT_OUT_OF_STOCK",
+            "FULFILLMENT_UNPACKED",
+            "FULFILLMENT_PREPARATION_AGING"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "enum": ["UNRESOLVED", "AKNOWLEDGED", "RESOLVED", "BLOCKED"],
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string"
+        },
+        "isLatest": {
+          "type": "boolean"
+        },
+        "isHighest": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "resolvedAt": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": ["id", "type", "status", "score"]
+    },
+    "RelatedOrderOperationDto": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "nullable": true
+        },
+        "deliveryType": {
+          "type": "string",
+          "nullable": true
+        }
+      }
+    },
+    "RelatedOrderParcelDto": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "nullable": true
+        }
+      }
+    },
+    "RelatedOrderTargetDto": {
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "nullable": true
+        }
+      }
+    },
+    "ProvinceResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name_latin": {
+          "type": "string"
+        },
+        "name_arabic": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name_latin", "name_arabic"]
+    }
+  },
+  "unresolvedSchemaRefs": ["BusinessErrorDto", "CreateOrderSuccessDto"],
+  "knownGaps": [
+    "The compatibility create/update request parameter schemas are not complete in the upstream document.",
+    "The compatibility return-receipt trackings query is typed as a string without a documented list encoding.",
+    "CreateOrderDto.items references OrderItemDto, whose current schema describes a full internal order instead of the title/quantity/sku items shown in the official operation example. Confirm the intended input before generating a client.",
+    "The custom webhook signature/header and receiving payload contract are not specified by this subset."
+  ]
+}

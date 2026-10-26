@@ -60,3 +60,9 @@ A real API key is required for live verification. The account page states that i
 No real shipment or webhook configuration is created as part of read-only verification. Osen offers custom webhooks, but the OpenAPI does not specify the receiving signature/payload contract sufficiently to implement a verified receiver here. Scheduled polling is the active synchronization path; webhook activation needs a public V2 endpoint and a verified delivery/authentication contract.
 
 Live verification on 2026-10-26: merchant/store authentication and read-only wilaya, commune, tariff and stock requests succeeded. A new permanent key was generated with explicit owner authorization and saved only in `.env.osen.local`, which is ignored by Git. No live shipment or webhook configuration was created. Live write acceptance and production activation remain separate steps.
+
+Additional read-only verification exercised the account's existing orders, exact-tracking bulk lookup and a shipping label download (HTTP 200, `application/pdf`). No customer payload or label was saved in the documentation. The stock response was HTTP 200 with an empty products array and total zero; stock shipment acceptance remains untested.
+
+## Reusable documentation skill
+
+[skills/osen-express](../skills/osen-express/README.md) contains a portable AI skill, a developer guide, a dated structural OpenAPI subset and dependency-free Node.js helpers. Its offline tests run with `pnpm test`. It deliberately excludes internal PubSub routes and records missing schemas, incomplete compatibility inputs, unspecified return-list encoding and the contradictory v2 item schema. None of these gaps is treated as a verified live-write contract.

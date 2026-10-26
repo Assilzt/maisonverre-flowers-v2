@@ -1,0 +1,4 @@
+interface:
+  display_name: "Osen Express API"
+  short_description: "Official API references and integration checks"
+  default_prompt: "Use $osen-express to integrate or troubleshoot Osen Express using its official API contracts."

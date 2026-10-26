@@ -91,3 +91,5 @@ pnpm audit --prod --audit-level high
 التفاصيل: [المنتجات](docs/product-landing-pages.md)، [الطلبات](docs/order-workflow.md)، [المعمارية](docs/architecture.md)، [النشر](docs/deployment.md).
 
 تكامل الشحن الإضافي: [Osen Express](docs/osen-integration.md).
+
+للمطورين ومساعدي AI: [Osen Express Skill](skills/osen-express/README.md) حزمة مستقلة قابلة للمشاركة، مع مرجع رسمي محدد النطاق وRead-only Check. لا تحتاج إلى كود التطبيق أو أسراره.

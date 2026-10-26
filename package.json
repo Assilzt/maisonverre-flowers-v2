@@ -11,9 +11,9 @@
     "check": "tsc --noEmit",
     "test": "node scripts/test.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
-    "format": "prettier --write frontend backend api database shared scripts tests docs .github *.ts *.json *.md",
+    "format": "prettier --write frontend backend api database shared scripts tests docs skills .github *.ts *.json *.md",
     "dev:fixture": "node --import tsx scripts/dev.ts --fixture",
-    "format:check": "prettier --check frontend backend api database shared scripts tests docs .github *.ts *.json *.md",
+    "format:check": "prettier --check frontend backend api database shared scripts tests docs skills .github *.ts *.json *.md",
     "osen:check": "node --env-file=.env.osen.local --import tsx scripts/check-osen.ts"
   },
   "dependencies": {

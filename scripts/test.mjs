@@ -20,6 +20,7 @@ for (const args of [
     "tests/ecotrack.regression.mjs",
     "tests/server-render.regression.mjs",
     "tests/osen.regression.mjs",
+    "skills/osen-express/scripts/self-test.mjs",
   ],
 ]) {
   const result = spawnSync(process.execPath, args, { stdio: "inherit", env });
