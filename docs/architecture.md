@@ -2,7 +2,7 @@
 
 ## Frontend
 
-React + TypeScript + Vite. `storefront` يحتفظ بقالب الزهور الأصلي، `checkout` يعزل Phone capture والتسليم، و`tracking` يحتفظ بتوقيت الأحداث وDedupe. Dashboard الأصلي مقسم إلى `model` للحالة والإجراءات و`views` للمكونات، مع نفس HTML/CSS الأساسي. `products` يجمع الحقول وحالة محرر المنتجات دون تكرار قالب Landing Page لكل منتج.
+React + TypeScript + Vite. `storefront` يحتفظ بقالب الزهور الأصلي، `checkout` يعزل Phone capture والتسليم، و`tracking` يحتفظ بتوقيت الأحداث وDedupe. Dashboard مقسم إلى `model` للحالة والإجراءات، و`views` للشاشات، و`ui` للقالب الموحد والتنقل وDialog وStatus badges. الطلبات جدول على الكمبيوتر وبطاقات على الهاتف، والمنتجات لها قائمة ومحرر مستقل بأقسام. `products` يجمع الحقول وحالة محرر المنتجات دون تكرار قالب Landing Page لكل منتج.
 
 تحميل Dashboard وPage editor وأدوات PDF يتم عبر Dynamic import. CSS الإدارة منفصل عن CSS الزهور. الصورة الأصلية WebP مع Preload وأبعاد ثابتة. Production build يُنتج HTML أوليًا للزهور، و`api/render.ts` يرسم Published config على الخادم للصفحات الديناميكية.
 

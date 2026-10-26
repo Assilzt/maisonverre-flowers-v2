@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
 import { api } from "@/services/api";
 import { newProduct, type StoredProduct } from "./product-model";
+import { validateProductForm, type ProductErrors } from "./validation";
 
 type ProductResponse = {
   pages: StoredProduct[];
@@ -21,6 +22,7 @@ export function useProductEditor() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ProductErrors>({});
   const dirty = !storedSlug || JSON.stringify(page) !== saved;
   const stored = products.find(p => p.slug === storedSlug);
 
@@ -32,6 +34,7 @@ export function useProductEditor() {
     setStoredSlug(product.slug);
     setSaved(JSON.stringify(product.draft));
     setRevisions(history);
+    setFieldErrors({});
   }
   async function loadProducts() {
     const data = await api<ProductResponse>("/api/pages?mode=admin");
@@ -84,15 +87,17 @@ export function useProductEditor() {
     setMessage("");
     try {
       await task();
+      return true;
     } catch (e) {
       setError((e as Error).message);
+      return false;
     } finally {
       setBusy(false);
     }
   };
   const select = (slug: string) => {
-    if (!canLeave()) return;
-    void run(async () => {
+    if (!canLeave()) return Promise.resolve(false);
+    return run(async () => {
       const data = await api<ProductResponse>(
         "/api/pages?mode=admin&slug=" + encodeURIComponent(slug)
       );
@@ -100,7 +105,7 @@ export function useProductEditor() {
     });
   };
   const create = (duplicate = false) => {
-    if (!canLeave()) return;
+    if (!canLeave()) return false;
     const fresh = newProduct();
     setPage(
       duplicate
@@ -115,12 +120,20 @@ export function useProductEditor() {
     setRevisions([]);
     setMessage("منتج جديد: أضف البيانات والصورة ثم احفظ المسودة.");
     setError("");
+    setFieldErrors({});
+    return true;
   };
   const change = <K extends keyof ProductLandingConfig>(
     key: K,
     value: ProductLandingConfig[K]
   ) => setPage(p => ({ ...p, [key]: value }));
-  const save = () =>
+  const save = () => {
+    const errors = validateProductForm(page);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) {
+      setError("راجع الحقول المعلّمة قبل حفظ المنتج.");
+      return;
+    }
     void run(async () => {
       const first = page.bundles?.[0];
       const config = {
@@ -145,6 +158,7 @@ export function useProductEditor() {
       adopt(data.pages[0], data.revisions);
       setMessage("حُفظ المنتج كمسودة. يمكنك معاينته ثم نشره.");
     });
+  };
   const publish = () => {
     if (dirty) {
       setError("احفظ التعديلات أولًا ثم انشر المسودة.");
@@ -180,6 +194,15 @@ export function useProductEditor() {
     sessionStorage.setItem("maisonverre:preview", JSON.stringify(page));
     window.open("/?preview=1", "_blank");
   };
+  const leaveEditor = () => {
+    if (!canLeave()) return false;
+    const previous = JSON.parse(saved) as ProductLandingConfig;
+    const entry = products.find(p => p.slug === previous.slug) || products[0];
+    if (entry) adopt(entry);
+    setError("");
+    setMessage("");
+    return true;
+  };
   return {
     authenticated,
     products,
@@ -191,6 +214,8 @@ export function useProductEditor() {
     message,
     error,
     busy,
+    fieldErrors,
+    leaveEditor,
     select,
     create,
     change,

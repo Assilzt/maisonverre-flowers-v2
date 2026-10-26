@@ -9,6 +9,9 @@ export type OrderStatus =
   | "returned"
   | "trashed";
 export type ProviderProfile = {
+  kind?: "ecotrack" | "osen";
+  merchantId?: string;
+  storeId?: string;
   id: string;
   name: string;
   provider: string;

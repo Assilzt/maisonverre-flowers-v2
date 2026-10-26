@@ -6,7 +6,7 @@ export const statusLabels: Record<OrderStatus | "all", string> = {
   confirmed: "مؤكدة",
   not_responding: "يحتاج متابعة",
   cancelled: "ملغاة",
-  shipped: "مرفوعة إلى EcoTrack",
+  shipped: "مرسلة لشركة التوصيل",
   delivered: "تم التسليم",
   returned: "مرتجعة",
   trashed: "سلة المهملات",

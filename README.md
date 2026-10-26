@@ -1,10 +1,10 @@
 # MaisonVerre Flowers V2 · Atlasio Operations
 
-نسخة مستقلة من Source ZIP الخاص بالمشروع. تحتفظ بواجهة الزهور ولوحة Atlasio الأصلية، وتفصل Frontend وBackend وAPI وDatabase. لا يتضمن هذا Repository بيانات العملاء أو مفاتيح الخدمات أو ربط Vercel القديم.
+نسخة مستقلة من Source ZIP الخاص بالمشروع. تحتفظ بواجهة الزهور وتعيد تنظيم لوحة Atlasio بواجهة موحّدة، وتفصل Frontend وBackend وAPI وDatabase. لا يتضمن هذا Repository بيانات العملاء أو مفاتيح الخدمات أو ربط Vercel القديم.
 
 ## إضافة منتج من التطبيق
 
-افتح `/admin` وسجّل الدخول، ثم **المنتجات +** أو **المنتجات وصفحات الهبوط** في القائمة. الرابط المباشر `/admin/products`، والرابط القديم `/admin/pages` ما زال يعمل.
+افتح `/admin` وسجّل الدخول، ثم **المنتجات** من القائمة، ثم **إضافة منتج** في القائمة. الرابط المباشر `/admin/products`، والرابط القديم `/admin/pages` ما زال يعمل.
 
 1. **إضافة منتج جديد** لإنشاء منتج مستقل، أو **نسخ المنتج** للبدء من منتج موجود.
 2. أدخل الاسم وSlug والعروض والصورة والوصف. السعر الأساسي يُستمد من أول عرض. الصور تقبل HTTPS URL أو ملفًا موجودًا داخل `/images/`؛ رفع الملفات إلى خدمة تخزين غير مشمول.
@@ -20,7 +20,7 @@ frontend/                 React UI, CSS, images
   src/features/storefront/ Original flower landing template
   src/features/checkout/   Phone capture, drafts, checkout
   src/features/tracking/   Original Pixel initialization/event contract
-  src/features/admin/      Original Atlasio dashboard and extra tools
+  src/features/admin/      Unified Atlasio workspace and tools
     products/              Product editor state, fields, product model
   src/services/            Browser API client
 backend/
@@ -89,3 +89,5 @@ pnpm audit --prod --audit-level high
 لا يوجد ضمان Zero loss عند تعطل Database بالكامل، أو Exactly once عند انقطاع الشبكة بعد قبول Telegram للرسالة. لا يتضمن الفحص المحلي اعتمادًا لحساب EcoTrack الحقيقي أو قياس PageSpeed على Vercel؛ هذه خطوات Staging.
 
 التفاصيل: [المنتجات](docs/product-landing-pages.md)، [الطلبات](docs/order-workflow.md)، [المعمارية](docs/architecture.md)، [النشر](docs/deployment.md).
+
+تكامل الشحن الإضافي: [Osen Express](docs/osen-integration.md).

@@ -88,7 +88,10 @@ export async function createEcoTrackParcel(
       `${getBaseUrl(settings)}/create/order?${params.toString()}`,
       {
         method: "POST",
-        headers: { Authorization: getHeaders(settings).Authorization },
+        headers:
+          settings?.kind === "osen"
+            ? getHeaders(settings)
+            : { Authorization: getHeaders(settings).Authorization },
       }
     );
   } catch (error) {

@@ -88,8 +88,8 @@ export function createMutationActions(
         title: action === "ship" ? "جارٍ رفع الطلب" : "جارٍ إلغاء الرفع",
         message:
           action === "ship"
-            ? "يتم إرسال بيانات الطلب إلى EcoTrack، يرجى الانتظار قليلاً."
-            : "يتم طلب إلغاء الشحنة من EcoTrack.",
+            ? "يتم إرسال بيانات الطلب إلى شركة التوصيل، يرجى الانتظار قليلاً."
+            : "يتم طلب إلغاء الشحنة من شركة التوصيل.",
       });
     try {
       const shippingMode =
@@ -132,9 +132,9 @@ export function createMutationActions(
           message:
             action === "ship"
               ? tracking
-                ? `تم قبول الطلب من EcoTrack. رقم التتبع: ${tracking}`
-                : "تم قبول الطلب من EcoTrack وتسجيله كمرفوع."
-              : "تم إلغاء الشحنة من EcoTrack بنجاح.",
+                ? `تم قبول الطلب من شركة التوصيل. رقم التتبع: ${tracking}`
+                : "تم قبول الطلب من شركة التوصيل وتسجيله كمرفوع."
+              : "تم إلغاء الشحنة من شركة التوصيل بنجاح.",
         });
       }
     } catch (requestError) {
@@ -206,20 +206,21 @@ export function createMutationActions(
           error?: string;
         }>;
       };
-      if (!response.ok) throw new Error(data.error || "تعذرت مزامنة EcoTrack");
+      if (!response.ok)
+        throw new Error(data.error || "تعذرت مزامنة شركة التوصيل");
       await loadOrders();
       const providerError = data.providers?.find(item => item.error)?.error;
       if (providerError) throw new Error(providerError);
       setShippingNotice({
         type: "success",
-        title: "تمت مزامنة EcoTrack",
+        title: "تمت مزامنة شركة التوصيل",
         message: `تم فحص ${data.total || 0} شحنة، وتحديث ${data.synced || 0} طلبية (${data.matched || 0} مطابقة).`,
       });
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "تعذرت مزامنة EcoTrack"
+          : "تعذرت مزامنة شركة التوصيل"
       );
     } finally {
       setSyncing(false);

@@ -8,6 +8,7 @@ import {
   type Response,
 } from "../repositories/index.js";
 import { invalidateFeeCache } from "../services/delivery-fees.js";
+import { validateOsenConnection } from "../integrations/osen/connection.js";
 const feeSchema = z.record(
   z.string().regex(/^(?:[1-9]|[1-4]\d|5[0-8])$/),
   z.object({
@@ -16,6 +17,15 @@ const feeSchema = z.record(
   })
 );
 const providerSchema = z.object({
+  kind: z.enum(["ecotrack", "osen"]).default("ecotrack"),
+  merchantId: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,128}$/)
+    .optional(),
+  storeId: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,128}$/)
+    .optional(),
   id: z.string().min(1).max(64),
   name: z.string().min(1).max(160),
   provider: z
@@ -48,6 +58,15 @@ export async function updateSettings(
         throw new Error("معرّفات شركات مكررة");
       const providers = input.map(p => {
         const old = existing.providers.find(v => v.id === p.id);
+        if (old && (old.kind || "ecotrack") !== p.kind && !p.token)
+          throw new Error(
+            "تغيير نوع التكامل يتطلب مفتاحًا جديدًا للحساب الجديد"
+          );
+        if (
+          p.kind === "osen" &&
+          (!p.merchantId || !p.storeId || p.provider !== "osen-express")
+        )
+          throw new Error("أكمل Merchant ID وStore ID لحساب Osen Express");
         return {
           ...p,
           token: p.token || old?.token || "",
@@ -56,7 +75,13 @@ export async function updateSettings(
       });
       for (const old of existing.providers) {
         const next = providers.find(p => p.id === old.id);
-        if (!next || next.provider !== old.provider) {
+        if (
+          !next ||
+          next.provider !== old.provider ||
+          next.kind !== (old.kind || "ecotrack") ||
+          next.merchantId !== old.merchantId ||
+          next.storeId !== old.storeId
+        ) {
           const rows =
             await sql!`SELECT id FROM atlasio_orders WHERE shipping_provider_id=${old.id} LIMIT 1`;
           if (rows.length)
@@ -68,6 +93,21 @@ export async function updateSettings(
       for (const p of providers)
         if (!p.token && p.id !== "default")
           throw new Error("Token مطلوب للشركة الجديدة");
+      for (const p of providers) {
+        const old = existing.providers.find(v => v.id === p.id);
+        if (
+          p.kind === "osen" &&
+          (!old ||
+            old.token !== p.token ||
+            old.merchantId !== p.merchantId ||
+            old.storeId !== p.storeId)
+        ) {
+          if (!(await validateOsenConnection(p)))
+            throw new Error(
+              "مفتاح Osen لا يطابق Merchant ID وStore ID أو لا يملك صلاحية المتجر"
+            );
+        }
+      }
       const active = String(body.activeProviderId || providers[0]?.id || "");
       if (providers.length && !providers.some(p => p.id === active))
         throw new Error("الشركة الفعالة غير موجودة");

@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import FlowerLanding from "@/features/storefront/FlowerLanding";
 import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
-const AdminOperations = lazy(() => import("@/features/admin/AdminOperations"));
 const Dashboard = lazy(() => import("@/features/admin/Dashboard"));
 const PageEditor = lazy(() => import("@/features/admin/PageEditor"));
 export function embeddedPage(slug: string) {
@@ -17,9 +16,11 @@ export function embeddedPage(slug: string) {
 export default function App() {
   const path = window.location.pathname,
     params = new URLSearchParams(window.location.search);
-  const isAdmin = path === "/admin" || params.get("dashboard") === "orders",
-    editor = path === "/admin/pages" || path === "/admin/products",
-    operations = path === "/admin/operations";
+  const isAdmin =
+      path === "/admin" ||
+      path.startsWith("/admin/") ||
+      params.get("dashboard") === "orders",
+    editor = path === "/admin/pages" || path === "/admin/products";
   const slug = path.startsWith("/p/")
     ? decodeURIComponent(path.slice(3))
     : DEFAULT_PRODUCT.slug;
@@ -30,7 +31,7 @@ export default function App() {
     ),
     [error, setError] = useState("");
   useEffect(() => {
-    if (isAdmin || editor || operations) return;
+    if (isAdmin) return;
     if (!preview && embeddedPage(slug)) return;
     if (preview) {
       try {
@@ -56,20 +57,14 @@ export default function App() {
           setError(e.message);
       });
     return () => controller.abort();
-  }, [slug, isAdmin, editor, operations, preview]);
+  }, [slug, isAdmin, preview]);
   useEffect(() => {
     if (page) document.title = "MaisonVerre — " + page.name;
   }, [page]);
-  if (isAdmin || editor || operations)
+  if (isAdmin)
     return (
       <Suspense fallback={<p dir="rtl">جارٍ تحميل الإدارة…</p>}>
-        {editor ? (
-          <PageEditor />
-        ) : operations ? (
-          <AdminOperations />
-        ) : (
-          <Dashboard />
-        )}
+        {editor ? <PageEditor /> : <Dashboard />}
       </Suspense>
     );
   if (path !== "/" && !path.startsWith("/p/"))

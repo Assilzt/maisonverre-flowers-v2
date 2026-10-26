@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { initialOrderSection, type OrderSection } from "./sections";
 import type {
   OrderStatus,
   Order,
@@ -18,17 +19,9 @@ export function useDashboardState() {
   const [availableStages, setAvailableStages] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [status, setStatus] = useState<OrderStatus | "all">("all");
-  const [section, setSection] = useState<
-    | "orders"
-    | "incomplete"
-    | "trash"
-    | "confirmation"
-    | "shipping"
-    | "tracking"
-    | "returns"
-    | "completed"
-    | "analytics"
-  >("orders");
+  const [section, setSection] = useState<OrderSection>(() =>
+    initialOrderSection(window.location.pathname, window.location.search)
+  );
   const [query, setQuery] = useState("");
   const [datePreset, setDatePreset] = useState<
     | "all"
@@ -56,6 +49,11 @@ export function useDashboardState() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [integrationKind, setIntegrationKind] = useState<"ecotrack" | "osen">(
+    "ecotrack"
+  );
+  const [merchantIdDraft, setMerchantIdDraft] = useState("");
+  const [storeIdDraft, setStoreIdDraft] = useState("");
   const [provider, setProvider] = useState("navexdelivery");
   const [token, setToken] = useState("");
   const [tokenConfigured, setTokenConfigured] = useState(false);
@@ -84,18 +82,7 @@ export function useDashboardState() {
   const touchStartX = useRef<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
-  const goToSection = (
-    nextSection:
-      | "orders"
-      | "incomplete"
-      | "trash"
-      | "confirmation"
-      | "shipping"
-      | "tracking"
-      | "returns"
-      | "completed"
-      | "analytics"
-  ) => {
+  const goToSection = (nextSection: OrderSection) => {
     setSection(nextSection);
     setStatus("all");
     setSelectedIds([]);
@@ -219,6 +206,12 @@ export function useDashboardState() {
     setSavingPixelId,
     pixelNotice,
     setPixelNotice,
+    integrationKind,
+    setIntegrationKind,
+    merchantIdDraft,
+    setMerchantIdDraft,
+    storeIdDraft,
+    setStoreIdDraft,
     provider,
     setProvider,
     token,

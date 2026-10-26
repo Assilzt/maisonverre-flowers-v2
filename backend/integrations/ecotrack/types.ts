@@ -1,4 +1,7 @@
 export type EcoTrackSettings = {
+  kind?: "ecotrack" | "osen";
+  merchantId?: string | null;
+  storeId?: string | null;
   provider?: string | null;
   token?: string | null;
 };

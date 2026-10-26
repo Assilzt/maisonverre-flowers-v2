@@ -1,366 +1,447 @@
-import { MessageCircle, RefreshCw, X } from "lucide-react";
-import { statusLabels, formatDate } from "../presentation";
-import { ShippingActions } from "../ShippingActions";
+import { useState } from "react";
+import {
+  Phone,
+  MessageCircle,
+  Copy,
+  MoreHorizontal,
+  Pencil,
+  Truck,
+  RefreshCw,
+} from "lucide-react";
 import type { DashboardContext } from "../useDashboard";
-export function OrderDialog({ context }: { context: DashboardContext }) {
-  const {
-    activeOrder,
-    closeOrder,
-    statusTone,
-    trackingStatusLabel,
-    loadShipmentDetails,
-    shipmentBusy,
-    shipmentUpdates,
-    commentDraft,
-    setCommentDraft,
-    commentBusy,
-    addOrderComment,
-    orderEvents,
-    runAction,
-    loadOrders,
-  } = context;
+import { Dialog } from "../ui/Dialog";
+import { StatusBadge } from "../ui/StatusBadge";
+import { ShippingActions } from "../ShippingActions";
+import { ShippingSetup } from "./ShippingSetup";
+import { EditOrderForm } from "./EditOrderForm";
+import { formatDate, customerSmsMessage } from "../presentation";
+import { shippingStatus } from "@shared/shipping-status";
+import { canConfirmOrder } from "../ui/order-ui";
+export function OrderDialog({ context: c }: { context: DashboardContext }) {
+  const order = c.activeOrder;
+  const [tab, setTab] = useState("details");
+  const [copied, setCopied] = useState(false);
+  if (!order) return null;
+  const canContact =
+    !order.ecotrack_tracking &&
+    ["abandoned", "complete", "not_responding", "confirmed"].includes(
+      order.status
+    );
+  const canShip =
+    order.status === "confirmed" &&
+    !order.ecotrack_tracking &&
+    !["processing", "uncertain"].includes(order.shipment_status);
+  const ready = Boolean(
+    order.full_name && order.phone && order.wilaya && order.commune
+  );
+  const act = (action: "trash" | "restore") => {
+    if (action === "trash" && !window.confirm("نقل الطلب إلى المحذوفات؟"))
+      return;
+    void c.runAction(order.id, action);
+  };
   return (
-    <>
-      {activeOrder && (
-        <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/35 p-3 backdrop-blur-[2px] sm:p-6"
-          onClick={closeOrder}
-        >
-          <div
-            className="max-h-[86vh] w-full max-w-lg overflow-y-auto rounded-[24px] bg-white p-4 shadow-2xl sm:p-5"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-emerald-600">
-                  {activeOrder.lead_id}
-                </p>
-                <h2 className="mt-1 text-lg font-black">
-                  {activeOrder.full_name || "زبون بدون اسم"}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={closeOrder}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-2xl bg-slate-50 p-3">
-                <p className="text-[10px] font-bold text-slate-400">الهاتف</p>
-                <p className="mt-1 text-sm font-black" dir="ltr">
-                  {activeOrder.phone}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-3">
-                <p className="text-[10px] font-bold text-emerald-700">
-                  الإجمالي
-                </p>
-                <p className="mt-1 text-lg font-black text-emerald-900">
-                  {activeOrder.price + (activeOrder.delivery_fee || 0)}{" "}
-                  <span className="text-xs">دج</span>
-                </p>
-              </div>
-              <div className="col-span-2 rounded-2xl bg-slate-50 p-3">
-                <p className="text-[10px] font-bold text-slate-400">العنوان</p>
-                <p className="mt-1 text-sm font-bold">
-                  {activeOrder.wilaya || "—"}
-                  {activeOrder.commune ? `، ${activeOrder.commune}` : ""}
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2.5">
-              <span className="text-xs font-bold text-slate-500">الحالة</span>
-              <span
-                className={`rounded-full px-2.5 py-1 text-[10px] font-black ring-1 ${statusTone(activeOrder.status)}`}
-              >
-                {statusLabels[activeOrder.status]}
-              </span>
-            </div>
-            {activeOrder.ecotrack_tracking && (
-              <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-bold text-blue-700">
-                    حالة التتبع
-                  </span>
-                  <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-black text-white">
-                    {trackingStatusLabel(activeOrder)}
-                  </span>
+    <Dialog
+      drawer
+      title={"طلب #" + order.id}
+      onClose={() => {
+        if (
+          (c.editing || c.commentDraft.trim()) &&
+          !window.confirm(
+            "إغلاق التفاصيل وترك التعديلات أو الملاحظة غير المحفوظة؟"
+          )
+        )
+          return;
+        c.closeOrder();
+      }}
+    >
+      <div className="dialog-body">
+        <div className="panel-heading">
+          <div>
+            <h2>{order.full_name || "عميل بدون اسم"}</h2>
+            <p className="mono">{order.lead_id}</p>
+          </div>
+          <StatusBadge status={order.status} />
+        </div>
+        <div className="section-tabs" aria-label="تفاصيل الطلب">
+          {[
+            ["details", "العميل والطلب"],
+            ["shipping", "الشحنة"],
+            ["activity", "السجل والملاحظات"],
+          ].map(([id, label]) => (
+            <button
+              type="button"
+              key={id}
+              className={tab === id ? "active" : ""}
+              aria-pressed={tab === id}
+              onClick={() => setTab(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {c.error && (
+          <p role="alert" className="notice error">
+            {c.error}
+          </p>
+        )}
+        {tab === "details" &&
+          (c.editing ? (
+            <EditOrderForm context={c} />
+          ) : (
+            <>
+              <dl className="detail-grid">
+                <div>
+                  <dt>الهاتف</dt>
+                  <dd>
+                    <a className="mono" href={"tel:" + order.phone}>
+                      {order.phone}
+                    </a>
+                  </dd>
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-3 border-t border-blue-100 pt-2">
-                  <span className="text-[10px] font-bold text-blue-700">
-                    رقم التتبع
-                  </span>
-                  <span
-                    className="max-w-[190px] truncate text-xs font-black text-blue-900"
-                    dir="ltr"
-                  >
-                    {activeOrder.ecotrack_tracking}
-                  </span>
+                <div>
+                  <dt>تاريخ الطلب</dt>
+                  <dd>{formatDate(order.created_at)}</dd>
                 </div>
-              </div>
-            )}
-            {activeOrder.ecotrack_tracking && (
-              <div className="mt-3 space-y-2 rounded-2xl border border-slate-200 bg-white p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-black text-slate-700">
-                    تفاصيل شركة التوصيل
-                  </p>
+                <div className="field-wide">
+                  <dt>عنوان التوصيل</dt>
+                  <dd>
+                    {[order.wilaya, order.commune].filter(Boolean).join("، ") ||
+                      "العنوان غير مكتمل"}
+                  </dd>
+                </div>
+                <div className="field-wide">
+                  <dt>المنتج</dt>
+                  <dd>{order.order_snapshot?.name || order.campaign || "—"}</dd>
+                </div>
+                <div>
+                  <dt>الكمية</dt>
+                  <dd>{order.quantity || 1}</dd>
+                </div>
+                <div>
+                  <dt>سعر المنتجات</dt>
+                  <dd>{order.price.toLocaleString()} دج</dd>
+                </div>
+                <div>
+                  <dt>رسوم التوصيل</dt>
+                  <dd>{order.delivery_fee.toLocaleString()} دج</dd>
+                </div>
+                <div>
+                  <dt>الإجمالي</dt>
+                  <dd>
+                    <strong>
+                      {(order.price + order.delivery_fee).toLocaleString()} دج
+                    </strong>
+                  </dd>
+                </div>
+              </dl>
+              <div className="toolbar detail-section">
+                <a className="btn" href={"tel:" + order.phone}>
+                  <Phone size={15} />
+                  اتصال
+                </a>
+                <a
+                  className="btn"
+                  href={`sms:${order.phone}?body=${encodeURIComponent(customerSmsMessage)}`}
+                >
+                  <MessageCircle size={15} />
+                  SMS
+                </a>
+                {!order.ecotrack_tracking && order.status !== "trashed" && (
                   <button
                     type="button"
-                    onClick={() => void loadShipmentDetails(activeOrder)}
-                    disabled={shipmentBusy}
-                    className="rounded-xl bg-slate-100 px-2.5 py-1.5 text-[10px] font-black text-slate-700 disabled:opacity-50"
+                    className="btn"
+                    onClick={() => c.startEditing(order)}
+                  >
+                    <Pencil size={14} />
+                    تعديل البيانات
+                  </button>
+                )}
+              </div>
+              {canContact && (
+                <section className="detail-section">
+                  <h3>نتيجة التواصل</h3>
+                  <p className="muted" style={{ marginBottom: 12 }}>
+                    محاولات الاتصال: {order.contact_attempts || 0}
+                  </p>
+                  <div className="toolbar">
+                    {[
+                      ["no_answer", "لم يرد"],
+                      ["busy", "مشغول"],
+                      ["call_later", "الاتصال لاحقًا"],
+                      ["wrong_number", "رقم خاطئ"],
+                      ["refused", "رفض الطلب"],
+                    ].map(([value, label]) => (
+                      <button
+                        type="button"
+                        className="btn small"
+                        disabled={c.contactBusy}
+                        key={value}
+                        onClick={() => {
+                          if (
+                            ["wrong_number", "refused"].includes(value) &&
+                            !window.confirm(
+                              "سيُلغى الطلب بعد تسجيل هذه النتيجة. متابعة؟"
+                            )
+                          )
+                            return;
+                          void c.recordContact(order, value);
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ))}
+        {tab === "shipping" && (
+          <>
+            {order.ecotrack_tracking ? (
+              <>
+                <div className="panel-heading">
+                  <StatusBadge carrier status={order.ecotrack_status} />
+                  <button
+                    type="button"
+                    className="btn small"
+                    disabled={c.shipmentBusy}
+                    onClick={() => void c.loadShipmentDetails(order)}
                   >
                     <RefreshCw
-                      className={`mr-1 inline h-3 w-3 ${shipmentBusy ? "animate-spin" : ""}`}
-                    />{" "}
-                    تحديث
+                      size={14}
+                      className={c.shipmentBusy ? "spinner" : ""}
+                    />
+                    تحديث الحالة
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
-                  <span>
-                    العامل:{" "}
-                    <b className="text-slate-700">
-                      {activeOrder.ecotrack_driver || "—"}
-                    </b>
-                  </span>
-                  <span>
-                    هاتف العامل:{" "}
-                    <b dir="ltr" className="text-slate-700">
-                      {activeOrder.ecotrack_driver_phone || "—"}
-                    </b>
-                  </span>
-                  <span>
-                    هاتف المكتب:{" "}
-                    <b dir="ltr" className="text-slate-700">
-                      {activeOrder.ecotrack_desk_phone || "—"}
-                    </b>
-                  </span>
-                  <span>
-                    المحطة:{" "}
-                    <b className="text-slate-700">
-                      {activeOrder.ecotrack_station || "—"}
-                    </b>
-                  </span>
-                </div>
-                {activeOrder.ecotrack_last_note && (
-                  <p className="rounded-xl bg-amber-50 p-2 text-[10px] font-bold text-amber-900">
-                    آخر تعليق: {activeOrder.ecotrack_last_note}
+                <dl className="detail-grid">
+                  <div className="field-wide">
+                    <dt>رقم التتبع</dt>
+                    <dd className="toolbar">
+                      <span className="mono">{order.ecotrack_tracking}</span>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        aria-label="نسخ رقم التتبع"
+                        onClick={() => {
+                          void navigator.clipboard
+                            .writeText(order.ecotrack_tracking!)
+                            .then(() => setCopied(true));
+                        }}
+                      >
+                        <Copy size={14} />
+                      </button>
+                      {copied && (
+                        <span className="muted" role="status">
+                          تم النسخ
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>شركة التوصيل</dt>
+                    <dd>{order.shipping_provider_name || "EcoTrack"}</dd>
+                  </div>
+                  <div>
+                    <dt>آخر مزامنة</dt>
+                    <dd>
+                      {order.ecotrack_last_synced_at
+                        ? formatDate(order.ecotrack_last_synced_at)
+                        : "لم تتم بعد"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>المحطة</dt>
+                    <dd>{order.ecotrack_station || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>عامل التوصيل</dt>
+                    <dd>
+                      {order.ecotrack_driver || "—"}
+                      {order.ecotrack_driver_phone && (
+                        <a
+                          className="subtle mono"
+                          href={"tel:" + order.ecotrack_driver_phone}
+                        >
+                          {order.ecotrack_driver_phone}
+                        </a>
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                {order.ecotrack_sync_error && (
+                  <p className="notice error" style={{ marginTop: 18 }}>
+                    {order.ecotrack_sync_error}
                   </p>
                 )}
-                <details open className="rounded-xl border border-slate-100">
-                  <summary className="cursor-pointer px-2.5 py-2 text-[10px] font-black text-slate-600">
-                    تاريخ التتبع والتعليقات ({shipmentUpdates.length})
-                  </summary>
-                  <div className="max-h-64 space-y-2 overflow-y-auto border-t border-slate-100 p-2.5">
-                    {shipmentUpdates.length === 0 ? (
-                      <p className="text-[10px] font-bold text-slate-400">
-                        لا توجد تحديثات من الشركة بعد.
-                      </p>
-                    ) : (
-                      shipmentUpdates.map(item => (
-                        <div
-                          key={item.id}
-                          className="border-r-2 border-blue-300 pr-2"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-black text-blue-800">
-                              {item.reason || item.status || "تحديث"}
-                            </span>
-                            <span className="text-[9px] font-bold text-slate-400">
-                              {item.activity_date || ""}{" "}
-                              {item.activity_time || ""}
-                            </span>
-                          </div>
-                          {item.details && (
-                            <p className="mt-1 text-[10px] font-bold text-slate-600">
-                              {item.details}
-                            </p>
-                          )}
-                          {(item.driver ||
-                            item.station ||
-                            item.postponed_to) && (
-                            <p className="mt-1 text-[9px] font-semibold text-slate-500">
-                              {item.driver ? `العامل: ${item.driver}` : ""}
-                              {item.station ? ` · المحطة: ${item.station}` : ""}
-                              {item.postponed_to
-                                ? ` · تأجيل إلى: ${item.postponed_to}`
-                                : ""}
-                            </p>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </details>
+              </>
+            ) : canShip ? (
+              <>
+                <p className="notice">
+                  الطلب مؤكد. راجع حساب التوصيل وطريقة الشحن قبل الإرسال.
+                </p>
+                <ShippingSetup context={c} />
+                {!ready && (
+                  <p className="notice warning" style={{ marginTop: 18 }}>
+                    أكمل اسم العميل والولاية والبلدية من بيانات الطلب قبل الشحن.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="notice">
+                {["processing", "uncertain"].includes(order.shipment_status)
+                  ? "نتيجة الإرسال تحتاج مطابقة قبل أي محاولة جديدة."
+                  : "يظهر تجهيز الشحن بعد تأكيد الطلب."}
+              </p>
+            )}
+            {(order.ecotrack_tracking ||
+              ["processing", "uncertain"].includes(order.shipment_status)) && (
+              <div className="detail-section">
+                <ShippingActions
+                  key={
+                    order.id +
+                    String(order.remote_validated) +
+                    order.ecotrack_status
+                  }
+                  order={order}
+                  onChange={() => c.loadOrders()}
+                />
               </div>
             )}
-            <section className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-black text-slate-800">
-                    ملاحظات الطلب
-                  </p>
-                  <p className="mt-1 text-[10px] font-semibold text-slate-500">
-                    أضف ملاحظة داخلية لفريق المتابعة.
-                  </p>
-                </div>
-                <MessageCircle className="h-5 w-5 text-slate-400" />
-              </div>
-              <textarea
-                value={commentDraft}
-                onChange={event => setCommentDraft(event.target.value)}
-                placeholder="اكتب تعليقاً على الطلب..."
-                maxLength={1000}
-                rows={3}
-                className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-              />
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-semibold text-slate-400">
-                  {commentDraft.length}/1000
-                </span>
-                <button
-                  type="button"
-                  disabled={commentBusy || !commentDraft.trim()}
-                  onClick={() => void addOrderComment(activeOrder)}
-                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {commentBusy ? "جارٍ الحفظ..." : "إضافة تعليق"}
-                </button>
-              </div>
-              <details
-                open
-                className="mt-3 rounded-xl border border-slate-200 bg-white"
-              >
-                <summary className="cursor-pointer list-none px-3 py-2.5 text-xs font-black text-slate-600">
-                  سجل النشاط ({orderEvents.length})
-                </summary>
-                <div className="space-y-2 border-t border-slate-100 p-3">
-                  {orderEvents.length === 0 ? (
-                    <p className="text-xs font-bold text-slate-400">
-                      لا توجد ملاحظات أو تحديثات مسجلة بعد.
+            {c.shipmentUpdates.length > 0 && (
+              <section className="detail-section">
+                <h3>تاريخ الشحنة</h3>
+                {c.shipmentUpdates.map(update => (
+                  <div className="timeline-item" key={update.id}>
+                    <p>
+                      {update.status
+                        ? shippingStatus(update.status).label
+                        : update.reason || "تحديث"}
                     </p>
-                  ) : (
-                    orderEvents.map(event => (
-                      <div
-                        key={event.id}
-                        className="border-r-2 border-emerald-300 pr-2"
-                      >
-                        <p className="text-xs font-bold text-slate-700">
-                          {event.message}
-                        </p>
-                        <p className="mt-0.5 text-[10px] font-semibold text-slate-400">
-                          {formatDate(event.created_at)}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </details>
-            </section>
-            <div className="mt-4 space-y-2">
-              {activeOrder.status === "confirmed" &&
-                !activeOrder.ecotrack_tracking && (
-                  <>
-                    <div className="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                      <p className="mb-2 text-xs font-black text-slate-700">
-                        جاهزية الشحن
-                      </p>
-                      <div className="grid grid-cols-2 gap-1.5 text-[10px] font-bold">
-                        <span
-                          className={
-                            activeOrder.full_name
-                              ? "text-emerald-700"
-                              : "text-rose-600"
-                          }
-                        >
-                          {activeOrder.full_name ? "✓" : "×"} الاسم
-                        </span>
-                        <span
-                          className={
-                            activeOrder.phone
-                              ? "text-emerald-700"
-                              : "text-rose-600"
-                          }
-                        >
-                          {activeOrder.phone ? "✓" : "×"} الهاتف
-                        </span>
-                        <span
-                          className={
-                            activeOrder.wilaya
-                              ? "text-emerald-700"
-                              : "text-rose-600"
-                          }
-                        >
-                          {activeOrder.wilaya ? "✓" : "×"} الولاية
-                        </span>
-                        <span
-                          className={
-                            activeOrder.commune
-                              ? "text-emerald-700"
-                              : "text-rose-600"
-                          }
-                        >
-                          {activeOrder.commune ? "✓" : "×"} البلدية
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        disabled={
-                          !activeOrder.full_name ||
-                          !activeOrder.phone ||
-                          !activeOrder.wilaya ||
-                          !activeOrder.commune
-                        }
-                        onClick={() =>
-                          void runAction(activeOrder.id, "ship", "stock")
-                        }
-                        className="rounded-2xl bg-emerald-500 px-3 py-3 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        شحن من Stock
-                      </button>
-                      <button
-                        type="button"
-                        disabled={
-                          !activeOrder.full_name ||
-                          !activeOrder.phone ||
-                          !activeOrder.wilaya ||
-                          !activeOrder.commune
-                        }
-                        onClick={() =>
-                          void runAction(
-                            activeOrder.id,
-                            "ship",
-                            "without_stock"
-                          )
-                        }
-                        className="rounded-2xl bg-blue-50 px-3 py-3 text-xs font-black text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        شحن بدون Stock
-                      </button>
-                    </div>
-                  </>
-                )}
-              {(activeOrder.ecotrack_tracking ||
-                ["processing", "uncertain"].includes(
-                  activeOrder.shipment_status
-                )) && (
-                <ShippingActions
-                  order={activeOrder}
-                  onChange={async () => {
-                    await loadOrders();
-                  }}
-                />
-              )}
+                    {update.details && (
+                      <p className="muted">{update.details}</p>
+                    )}
+                    <small>
+                      {[
+                        update.activity_date,
+                        update.activity_time,
+                        update.station,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </small>
+                  </div>
+                ))}
+              </section>
+            )}
+          </>
+        )}
+        {tab === "activity" && (
+          <>
+            <label>
+              ملاحظة داخلية
+              <textarea
+                value={c.commentDraft}
+                maxLength={1000}
+                placeholder="معلومة تساعدك في متابعة هذا الطلب…"
+                onChange={e => c.setCommentDraft(e.target.value)}
+              />
+            </label>
+            <div className="toolbar" style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={c.commentBusy || !c.commentDraft.trim()}
+                onClick={() => void c.addOrderComment(order)}
+              >
+                حفظ الملاحظة
+              </button>
+              <span className="muted">{c.commentDraft.length}/1000</span>
             </div>
-          </div>
+            <section className="detail-section">
+              <h3>سجل النشاط</h3>
+              {c.orderEvents.length ? (
+                c.orderEvents.map(event => (
+                  <div className="timeline-item" key={event.id}>
+                    <p>{event.message}</p>
+                    <small>{formatDate(event.created_at)}</small>
+                  </div>
+                ))
+              ) : (
+                <p className="muted">لا توجد أحداث مسجلة بعد.</p>
+              )}
+            </section>
+          </>
+        )}
+      </div>
+      <footer className="dialog-footer">
+        <div>
+          {canContact && order.status !== "confirmed" ? (
+            <button
+              type="button"
+              className="btn primary"
+              disabled={c.contactBusy || !canConfirmOrder(order)}
+              onClick={() => void c.recordContact(order, "confirmed")}
+            >
+              تأكيد الطلب
+            </button>
+          ) : canShip ? (
+            <button
+              type="button"
+              className="btn primary"
+              disabled={
+                tab === "shipping" &&
+                (c.loading || !ready || !c.selectedProviderId)
+              }
+              onClick={() => {
+                if (tab !== "shipping") {
+                  setTab("shipping");
+                  return;
+                }
+                if (window.confirm("إرسال الطلب إلى حساب التوصيل المحدد؟"))
+                  void c.runAction(
+                    order.id,
+                    "ship",
+                    c.shipFromStock ? "stock" : "without_stock"
+                  );
+              }}
+            >
+              <Truck size={14} />
+              {tab === "shipping" ? "إرسال للشركة" : "تجهيز الشحن"}
+            </button>
+          ) : (
+            <button type="button" className="btn" onClick={c.closeOrder}>
+              إغلاق التفاصيل
+            </button>
+          )}
         </div>
-      )}
-    </>
+        <details className="more-actions">
+          <summary className="btn">
+            <MoreHorizontal size={17} />
+            المزيد
+          </summary>
+          <div className="more-actions-menu">
+            {order.status === "trashed" ? (
+              <button
+                type="button"
+                disabled={c.loading}
+                onClick={() => act("restore")}
+              >
+                استرجاع الطلب
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="danger"
+                disabled={c.loading}
+                onClick={() => act("trash")}
+              >
+                نقل إلى المحذوفات
+              </button>
+            )}
+          </div>
+        </details>
+      </footer>
+    </Dialog>
   );
 }

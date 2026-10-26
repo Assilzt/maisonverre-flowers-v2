@@ -28,6 +28,9 @@ export function useDashboardSession(
     | "setProviders"
     | "setActiveProviderId"
     | "setSelectedProviderId"
+    | "setIntegrationKind"
+    | "setMerchantIdDraft"
+    | "setStoreIdDraft"
     | "setProviderNameDraft"
     | "setEditingProviderId"
     | "setStockProducts"
@@ -58,6 +61,9 @@ export function useDashboardSession(
     setProviders,
     setActiveProviderId,
     setSelectedProviderId,
+    setIntegrationKind,
+    setMerchantIdDraft,
+    setStoreIdDraft,
     setProviderNameDraft,
     setEditingProviderId,
     setStockProducts,
@@ -160,6 +166,9 @@ export function useDashboardSession(
         (item: ProviderProfile) => item.id === (data.activeProviderId || "")
       ) || (data.providers || [])[0];
     setProviderNameDraft(activeProvider?.name || "");
+    setIntegrationKind(activeProvider?.kind || "ecotrack");
+    setMerchantIdDraft(activeProvider?.merchantId || "");
+    setStoreIdDraft(activeProvider?.storeId || "");
     setEditingProviderId(activeProvider?.id || "");
     const stockProviderId =
       data.activeProviderId || data.providers?.[0]?.id || "";

@@ -4,16 +4,17 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "node --env-file-if-exists=.env --import tsx scripts/dev.ts",
+    "dev": "node --env-file-if-exists=.env --env-file-if-exists=.env.osen.local --import tsx scripts/dev.ts",
     "build": "vite build && tsx scripts/prerender.ts",
     "preview": "vite preview --host 127.0.0.1",
-    "start": "node --env-file-if-exists=.env --import tsx backend/dev-server.ts",
+    "start": "node --env-file-if-exists=.env --env-file-if-exists=.env.osen.local --import tsx backend/dev-server.ts",
     "check": "tsc --noEmit",
     "test": "node scripts/test.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
     "format": "prettier --write frontend backend api database shared scripts tests docs .github *.ts *.json *.md",
     "dev:fixture": "node --import tsx scripts/dev.ts --fixture",
-    "format:check": "prettier --check frontend backend api database shared scripts tests docs .github *.ts *.json *.md"
+    "format:check": "prettier --check frontend backend api database shared scripts tests docs .github *.ts *.json *.md",
+    "osen:check": "node --env-file=.env.osen.local --import tsx scripts/check-osen.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

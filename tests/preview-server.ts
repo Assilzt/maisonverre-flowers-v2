@@ -2,12 +2,17 @@
 export {};
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL = "";
+process.env.OSEN_API_TOKEN = "";
+process.env.OSEN_MERCHANT_ID = "";
+process.env.OSEN_STORE_ID = "";
 process.env.DASHBOARD_PASSWORD = "local-preview-only";
 process.env.SESSION_SECRET = "local-preview-session-secret-not-for-production";
 process.env.TELEGRAM_BOT_TOKEN = "fixture-token";
 process.env.TELEGRAM_CHAT_ID = "fixture-chat";
 const { testDatabase } = await import("./database");
 const db = await testDatabase();
+const { seedPreviewOrders } = await import("./preview-data");
+await seedPreviewOrders(db);
 await db.query(
   "UPDATE atlasio_settings SET value='' WHERE key='meta_pixel_id'"
 );
@@ -20,9 +25,29 @@ await db.query(
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (input, init) => {
   const url = new URL(String(input));
+  if (
+    url.hostname === "backendmain.osenexpress.com" &&
+    url.pathname === "/v2/ecomanager/auth/validate"
+  ) {
+    const body = JSON.parse(String(init?.body || "{}"));
+    return Response.json(
+      body.api_id === "merchant-fixture" &&
+        body.api_token === "fixture-osen-token"
+        ? {
+            valid: true,
+            scope: "MERCHANT",
+            user_id: "merchant-fixture",
+            store: { id: "store-fixture" },
+          }
+        : { valid: false }
+    );
+  }
   if (url.hostname === "api.telegram.org")
     return Response.json({ ok: true, result: { message_id: 101 } });
-  if (url.hostname.endsWith(".ecotrack.dz")) {
+  if (
+    url.hostname.endsWith(".ecotrack.dz") ||
+    url.hostname === "backendmain.osenexpress.com"
+  ) {
     if (url.pathname.endsWith("/get/wilayas"))
       return Response.json([
         { wilaya_id: 5, wilaya_name: "Batna" },

@@ -26,6 +26,7 @@ import pages from "../api/pages";
 import { updateShip } from "../backend/handlers/update-ship";
 import { readOrders } from "../backend/handlers/read";
 import { cancelLocalShipment } from "../backend/repositories/stock";
+import { updateSettings } from "../backend/handlers/update-settings";
 let db: Awaited<ReturnType<typeof testDatabase>>;
 const originalFetch = globalThis.fetch;
 function capture() {
@@ -75,6 +76,9 @@ beforeAll(async () => {
   db = await testDatabase();
 });
 beforeEach(async () => {
+  await db.exec(
+    "DELETE FROM atlasio_settings WHERE key IN ('shipping_providers','active_provider_id')"
+  );
   await db.exec(
     "TRUNCATE atlasio_orders,mv_notification_outbox,mv_rate_limits,mv_jobs,mv_landing_pages,mv_page_revisions RESTART IDENTITY CASCADE"
   );
@@ -208,6 +212,106 @@ describe("Carrier state and synchronization", () => {
   });
 });
 describe("Page editing and sessions", () => {
+  it("stores a verified Osen profile without exposing its secret or changing the active EcoTrack account", async () => {
+    const existing = await loadEcoSettings();
+    const profile = {
+      id: "osen-fixture",
+      name: "Osen Express",
+      kind: "osen",
+      provider: "osen-express",
+      token: "fixture-osen-secret",
+      merchantId: "merchant-fixture",
+      storeId: "store-fixture",
+    };
+    globalThis.fetch = vi.fn(async () =>
+      Response.json({
+        valid: true,
+        scope: "MERCHANT",
+        user_id: profile.merchantId,
+        store: { id: profile.storeId },
+      })
+    ) as typeof fetch;
+    const c = capture();
+    await updateSettings(
+      request({}, true),
+      c.response,
+      {
+        providers: [...existing.providers, profile],
+        activeProviderId: existing.providerId,
+      },
+      existing
+    );
+    expect(c.code).toBe(200);
+    expect(c.body.activeProviderId).toBe(existing.providerId);
+    expect(JSON.stringify(c.body)).not.toContain(profile.token);
+    const settings = await loadEcoSettings(profile.id);
+    expect(settings.kind).toBe("osen");
+    expect(settings.token).toBe(profile.token);
+    expect(settings.merchantId).toBe(profile.merchantId);
+  });
+  it("rejects Osen credentials for a different store before writing the profile", async () => {
+    const existing = await loadEcoSettings();
+    globalThis.fetch = vi.fn(async () =>
+      Response.json({
+        valid: true,
+        scope: "MERCHANT",
+        user_id: "merchant-fixture",
+        store: { id: "different-store" },
+      })
+    ) as typeof fetch;
+    const c = capture();
+    await updateSettings(
+      request({}, true),
+      c.response,
+      {
+        providers: [
+          ...existing.providers,
+          {
+            id: "osen-bad",
+            name: "Osen",
+            kind: "osen",
+            provider: "osen-express",
+            token: "wrong-store-secret",
+            merchantId: "merchant-fixture",
+            storeId: "store-fixture",
+          },
+        ],
+        activeProviderId: existing.providerId,
+      },
+      existing
+    );
+    expect(c.code).toBe(400);
+    expect(
+      (await loadEcoSettings()).providers.some(p => p.id === "osen-bad")
+    ).toBe(false);
+  });
+  it("cannot replace the carrier type of an account that has order history", async () => {
+    const existing = await loadEcoSettings();
+    const body = orderInput();
+    await createOrder(request(body), capture().response, body);
+    await sql!`UPDATE atlasio_orders SET shipping_provider_id=${existing.providerId}`;
+    globalThis.fetch = vi.fn() as typeof fetch;
+    const c = capture();
+    await updateSettings(
+      request({}, true),
+      c.response,
+      {
+        providers: [
+          {
+            ...existing.providers[0],
+            kind: "osen",
+            provider: "osen-express",
+            token: "new-fixture-key",
+            merchantId: "merchant-fixture",
+            storeId: "store-fixture",
+          },
+        ],
+      },
+      existing
+    );
+    expect(c.code).toBe(400);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
   it("creates independent products, rejects duplicate slugs, and publishes their own checkout price", async () => {
     const product = {
       ...structuredClone(DEFAULT_PRODUCT),

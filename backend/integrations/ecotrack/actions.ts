@@ -27,6 +27,8 @@ export async function carrierAction(
       throw new Error("الملاحظة مطلوبة وبحد أقصى 1000 حرف");
     params.set("content", note);
   }
+  if (action === "receive-return" && settings.kind === "osen")
+    params.set("trackings", JSON.stringify([tracking]));
   if (action === "edit")
     for (const key of [
       "client",
@@ -45,11 +47,13 @@ export async function carrierAction(
   const response = await ecoFetch(
     getBaseUrl(settings) +
       route[1] +
-      (action === "receive-return" ? "" : "?" + params),
+      (action === "receive-return" && settings.kind !== "osen"
+        ? ""
+        : "?" + params),
     {
       method: route[0],
       headers: getHeaders(settings),
-      ...(action === "receive-return"
+      ...(action === "receive-return" && settings.kind !== "osen"
         ? { body: JSON.stringify({ trackings: [tracking] }) }
         : {}),
     }

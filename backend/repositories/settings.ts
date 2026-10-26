@@ -1,6 +1,9 @@
 import { sql } from "./connection.js";
 
 export type ShippingProvider = {
+  kind?: "ecotrack" | "osen";
+  merchantId?: string;
+  storeId?: string;
   id: string;
   name: string;
   provider: string;
@@ -56,6 +59,17 @@ export const loadEcoSettings = async (providerId?: string) => {
         deliveryFees: legacyFees,
       },
     ];
+  if (process.env.OSEN_API_TOKEN && !providers.some(p => p.id === "osen-env"))
+    providers.push({
+      id: "osen-env",
+      name: "Osen Express",
+      kind: "osen",
+      provider: "osen-express",
+      token: process.env.OSEN_API_TOKEN,
+      merchantId: process.env.OSEN_MERCHANT_ID || "",
+      storeId: process.env.OSEN_STORE_ID || "",
+      deliveryFees: {},
+    });
   if (providerId && !providers.some(item => item.id === providerId))
     throw new Error("حساب شركة التوصيل المرتبط غير متاح؛ أعد ربط الحساب");
   const selected =
@@ -63,6 +77,9 @@ export const loadEcoSettings = async (providerId?: string) => {
     providers.find(item => item.id === values.active_provider_id) ||
     providers[0];
   return {
+    kind: selected?.kind || "ecotrack",
+    merchantId: selected?.merchantId,
+    storeId: selected?.storeId,
     provider:
       selected?.provider || process.env.ECOTRACK_PROVIDER || "navexdelivery",
     token: selected?.token || process.env.ECOTRACK_API_TOKEN || "",
@@ -76,10 +93,24 @@ export const loadEcoSettings = async (providerId?: string) => {
 };
 
 export const publicProviders = (providers: ShippingProvider[]) =>
-  providers.map(({ id, name, provider, deliveryFees, token }) => ({
-    id,
-    name,
-    provider,
-    deliveryFees,
-    tokenConfigured: Boolean(token),
-  }));
+  providers.map(
+    ({
+      id,
+      name,
+      provider,
+      deliveryFees,
+      token,
+      kind,
+      merchantId,
+      storeId,
+    }) => ({
+      kind: kind || "ecotrack",
+      merchantId,
+      storeId,
+      id,
+      name,
+      provider,
+      deliveryFees,
+      tokenConfigured: Boolean(token),
+    })
+  );

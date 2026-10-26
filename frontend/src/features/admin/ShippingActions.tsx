@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FileText, Pencil, ChevronDown } from "lucide-react";
 import type { Order } from "@shared/orders";
 import { remoteActionAllowed } from "@shared/shipping-status";
 import { api } from "@/services/api";
@@ -11,6 +12,7 @@ export function ShippingActions({
 }) {
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
+    [error, setError] = useState(""),
     [note, setNote] = useState(""),
     [editing, setEditing] = useState(false);
   const [fields, setFields] = useState({
@@ -22,162 +24,208 @@ export function ShippingActions({
     montant: order.price + order.delivery_fee,
     remarque: "",
   });
+  const labels = {
+    client: "اسم العميل",
+    tel: "الهاتف",
+    adresse: "العنوان",
+    commune: "البلدية",
+    wilaya: "رقم الولاية",
+    montant: "المبلغ الإجمالي",
+    remarque: "ملاحظة الشحنة",
+  };
   const run = async (task: () => Promise<unknown>) => {
     setBusy(true);
     setMessage("");
+    setError("");
     try {
       await task();
       await onChange();
-      setMessage("تم تنفيذ الإجراء");
+      setMessage("تم تنفيذ الإجراء بنجاح");
+      setEditing(false);
     } catch (e) {
-      setMessage((e as Error).message);
+      setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   };
+  const allowed = (action: string) =>
+    remoteActionAllowed(
+      action,
+      order.ecotrack_status,
+      Boolean(order.remote_validated)
+    );
   const carrier = (action: string, extra: Record<string, unknown> = {}) =>
     void run(() =>
       api("/api/shipping", { id: order.id, action, fields: extra })
     );
+  const actions = (
+    [
+      ["validate", "اعتماد دون Ramassage"],
+      ["pickup", "اعتماد وطلب Ramassage"],
+      ["return", "طلب إرجاع"],
+      ["receive-return", "تأكيد استلام المرتجع"],
+      ["delete", "إلغاء الشحنة"],
+    ] as const
+  ).filter(([action]) => allowed(action));
   return (
-    <section className="panel">
-      <h2>إجراءات الشحنة</h2>
+    <section>
+      <h3 style={{ marginBottom: 14 }}>إجراءات الشركة</h3>
       {message && (
         <p role="status" className="notice">
           {message}
         </p>
       )}
-
+      {error && (
+        <p role="alert" className="notice error">
+          {error}
+        </p>
+      )}
       {order.ecotrack_tracking && (
         <>
-          <div className="actions-grid">
-            {(
-              [
-                ["validate", "اعتماد الإرسال / دون Ramassage"],
-                ["pickup", "اعتماد + طلب Ramassage"],
-                ["return", "طلب إرجاع"],
-                ["receive-return", "تأكيد استلام المرتجع"],
-                ["delete", "إلغاء الرفع من EcoTrack"],
-              ] as const
-            ).map(([action, label]) => (
-              <button
-                key={action}
-                className={"btn " + (action === "delete" ? "danger" : "")}
-                disabled={
-                  busy ||
-                  !remoteActionAllowed(
-                    action,
-                    order.ecotrack_status,
-                    Boolean(order.remote_validated)
-                  )
-                }
-                title="تُراجع الأهلية لدى EcoTrack قبل التنفيذ"
-                onClick={() => {
-                  if (
-                    ["delete", "receive-return", "validate", "pickup"].includes(
-                      action
-                    ) &&
-                    !window.confirm(label + "؟")
-                  )
-                    return;
-                  carrier(action);
-                }}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="toolbar">
             <a
               className="btn"
               href={"/api/shipping?id=" + order.id}
               target="_blank"
               rel="noreferrer"
             >
-              ملصق PDF / طباعة
+              <FileText size={14} />
+              ملصق الشحنة PDF
             </a>
-            <button
-              className="btn"
-              onClick={() =>
-                void navigator.clipboard.writeText(order.ecotrack_tracking!)
-              }
-            >
-              نسخ Tracking
-            </button>
-            <button
-              className="btn"
-              disabled={
-                busy ||
-                !remoteActionAllowed(
-                  "edit",
-                  order.ecotrack_status,
-                  Boolean(order.remote_validated)
-                )
-              }
-              onClick={() => setEditing(!editing)}
-            >
-              تعديل لدى الشركة
-            </button>
-          </div>
-          {editing && (
-            <div className="form-grid">
-              {(Object.keys(fields) as Array<keyof typeof fields>).map(key => (
-                <label key={key}>
-                  {key}
-                  <input
-                    value={fields[key]}
-                    onChange={e =>
-                      setFields(f => ({
-                        ...f,
-                        [key]:
-                          key === "montant"
-                            ? Number(e.target.value)
-                            : e.target.value,
-                      }))
-                    }
-                  />
-                </label>
-              ))}
+            {allowed("edit") && (
               <button
-                className="btn primary"
+                type="button"
+                className="btn"
                 disabled={busy}
-                onClick={() => carrier("edit", fields)}
+                onClick={() => setEditing(!editing)}
               >
-                حفظ التعديل البعيد
+                <Pencil size={14} />
+                تعديل لدى الشركة
               </button>
-            </div>
-          )}
-          <div className="toolbar">
-            <input
-              aria-label="ملاحظة لشركة التوصيل"
-              placeholder="ملاحظة ترسل لشركة التوصيل"
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              maxLength={1000}
-            />
-            <button
-              className="btn"
-              disabled={busy || !note.trim()}
-              onClick={() => carrier("note", { content: note })}
-            >
-              إرسال للشركة
-            </button>
+            )}
           </div>
+          {actions.length > 0 && (
+            <details style={{ marginTop: 10 }}>
+              <summary>
+                إجراءات إضافية{" "}
+                <ChevronDown size={13} style={{ display: "inline" }} />
+              </summary>
+              <p className="muted" style={{ marginBottom: 12 }}>
+                تُراجع الحالة لدى الشركة قبل التنفيذ. لا تظهر الإجراءات غير
+                المتاحة في هذه المرحلة.
+              </p>
+              <div className="actions-grid">
+                {actions.map(([action, label]) => (
+                  <button
+                    type="button"
+                    key={action}
+                    className={
+                      "btn small" + (action === "delete" ? " danger" : "")
+                    }
+                    disabled={busy}
+                    onClick={() => {
+                      if (window.confirm(label + "؟")) carrier(action);
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </details>
+          )}
+          {editing && (
+            <form
+              className="detail-section"
+              onSubmit={e => {
+                e.preventDefault();
+                carrier("edit", fields);
+              }}
+            >
+              <div className="form-grid">
+                {(Object.keys(fields) as Array<keyof typeof fields>).map(
+                  key => (
+                    <label key={key}>
+                      {labels[key]}
+                      <input
+                        required={key !== "remarque"}
+                        type={key === "montant" ? "number" : "text"}
+                        min={key === "montant" ? 0 : undefined}
+                        value={fields[key]}
+                        onChange={e =>
+                          setFields(f => ({
+                            ...f,
+                            [key]:
+                              key === "montant"
+                                ? Number(e.target.value)
+                                : e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                  )
+                )}
+              </div>
+              <div className="toolbar" style={{ marginTop: 18 }}>
+                <button type="submit" className="btn primary" disabled={busy}>
+                  حفظ لدى الشركة
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setEditing(false)}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          )}
+          <details style={{ marginTop: 10 }}>
+            <summary>إرسال ملاحظة لشركة التوصيل</summary>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                carrier("note", { content: note });
+              }}
+            >
+              <label>
+                الملاحظة
+                <textarea
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  maxLength={1000}
+                  required
+                />
+              </label>
+              <button
+                type="submit"
+                className="btn"
+                style={{ marginTop: 12 }}
+                disabled={busy || !note.trim()}
+              >
+                إرسال الملاحظة
+              </button>
+            </form>
+          </details>
         </>
       )}
       {["uncertain", "processing"].includes(order.shipment_status || "") && (
-        <div className="notice">
-          <p>
-            نتيجة الرفع تحتاج تحققًا؛ لا تعِد إنشاء الشحنة قبل المطابقة لدى
-            الشركة.
-          </p>
-          <button
-            className="btn"
-            disabled={busy}
-            onClick={() =>
-              void run(() => api("/api/recovery", { id: order.id }))
-            }
-          >
-            مطابقة الشحنة بالمرجع
-          </button>
+        <div className="notice warning">
+          <div>
+            <p>
+              النتيجة غير مؤكدة. طابق المرجع لدى الشركة قبل محاولة إنشاء أخرى.
+            </p>
+            <button
+              type="button"
+              className="btn small"
+              style={{ marginTop: 12 }}
+              disabled={busy}
+              onClick={() =>
+                void run(() => api("/api/recovery", { id: order.id }))
+              }
+            >
+              مطابقة الشحنة
+            </button>
+          </div>
         </div>
       )}
     </section>

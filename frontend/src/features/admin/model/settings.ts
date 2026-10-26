@@ -5,6 +5,12 @@ import type { DashboardSession } from "./session";
 export function createSettingsActions(
   context: Pick<
     DashboardState & DashboardSession,
+    | "integrationKind"
+    | "merchantIdDraft"
+    | "storeIdDraft"
+    | "setIntegrationKind"
+    | "setMerchantIdDraft"
+    | "setStoreIdDraft"
     | "providerNameDraft"
     | "provider"
     | "token"
@@ -34,6 +40,12 @@ export function createSettingsActions(
   >
 ) {
   const {
+    integrationKind,
+    merchantIdDraft,
+    storeIdDraft,
+    setIntegrationKind,
+    setMerchantIdDraft,
+    setStoreIdDraft,
     providerNameDraft,
     provider,
     token,
@@ -63,10 +75,20 @@ export function createSettingsActions(
   } = context;
   const saveProviderProfile = async () => {
     const name = providerNameDraft.trim();
-    const providerCode = provider.trim().toLowerCase();
+    const providerCode =
+      integrationKind === "osen"
+        ? "osen-express"
+        : provider.trim().toLowerCase();
     const providerToken = token.trim();
     if (!name || !providerCode || (!providerToken && !editingProviderId)) {
       setError("أدخل اسم الشركة وProvider والتوكن");
+      return;
+    }
+    if (
+      integrationKind === "osen" &&
+      (!merchantIdDraft.trim() || !storeIdDraft.trim())
+    ) {
+      setError("أدخل Merchant ID وStore ID من إعدادات Osen");
       return;
     }
     setSavingSettings(true);
@@ -75,7 +97,16 @@ export function createSettingsActions(
       const id = editingProviderId || `provider-${Date.now()}`;
       const nextProviders = [
         ...providers.filter(item => item.id !== id),
-        { id, name, provider: providerCode, token: providerToken },
+        {
+          id,
+          name,
+          provider: providerCode,
+          token: providerToken,
+          kind: integrationKind,
+          merchantId:
+            integrationKind === "osen" ? merchantIdDraft.trim() : undefined,
+          storeId: integrationKind === "osen" ? storeIdDraft.trim() : undefined,
+        },
       ];
       const response = await fetch("/api/orders", {
         method: "PATCH",
@@ -170,6 +201,9 @@ export function createSettingsActions(
   };
   const startNewProvider = () => {
     setEditingProviderId("");
+    setIntegrationKind("ecotrack");
+    setMerchantIdDraft("");
+    setStoreIdDraft("");
     setProviderNameDraft("");
     setProvider("");
     setToken("");
@@ -180,6 +214,9 @@ export function createSettingsActions(
   };
   const selectProviderForEdit = (item: ProviderProfile) => {
     setEditingProviderId(item.id);
+    setIntegrationKind(item.kind || "ecotrack");
+    setMerchantIdDraft(item.merchantId || "");
+    setStoreIdDraft(item.storeId || "");
     setProviderNameDraft(item.name);
     setProvider(item.provider);
     setToken("");

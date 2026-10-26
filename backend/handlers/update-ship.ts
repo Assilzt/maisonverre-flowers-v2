@@ -56,6 +56,12 @@ export async function updateShip(
         selectedProviderId
       )
     : null;
+  if (useStock && selectedSettings.kind === "osen" && !selectedProduct?.sku) {
+    response
+      .status(400)
+      .json({ error: "اختر منتج Osen بمرجع SKU من كتالوج المخزون قبل الشحن" });
+    return;
+  }
 
   if (body.stockProductId && !selectedProduct) {
     response
