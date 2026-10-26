@@ -58,3 +58,5 @@ Contract tests cover fixed routing, separate headers, merchant/store mismatch, s
 A real API key is required for live verification. The account page states that its permanent keys are shown once, valid for ten years, and cannot be revoked. Creating a new key therefore requires explicit action-time confirmation. Preserve the generated key in a server-only secret store or the ignored local file.
 
 No real shipment or webhook configuration is created as part of read-only verification. Osen offers custom webhooks, but the OpenAPI does not specify the receiving signature/payload contract sufficiently to implement a verified receiver here. Scheduled polling is the active synchronization path; webhook activation needs a public V2 endpoint and a verified delivery/authentication contract.
+
+Live verification on 2026-10-26: merchant/store authentication and read-only wilaya, commune, tariff and stock requests succeeded. A new permanent key was generated with explicit owner authorization and saved only in `.env.osen.local`, which is ignored by Git. No live shipment or webhook configuration was created. Live write acceptance and production activation remain separate steps.
