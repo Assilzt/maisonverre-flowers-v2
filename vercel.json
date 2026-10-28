@@ -5,10 +5,7 @@
   "framework": "vite",
   "functions": {
     "api/*.ts": {
-      "maxDuration": 60
-    },
-    "api/render.ts": {
-      "maxDuration": 30,
+      "maxDuration": 60,
       "includeFiles": "dist/server-template.html"
     }
   },
