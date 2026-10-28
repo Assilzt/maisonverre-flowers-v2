@@ -8,7 +8,9 @@
 2. Node 22.6+ وpnpm 10.4.1. ضع `DATABASE_URL`, `DASHBOARD_PASSWORD`, `SESSION_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `CRON_SECRET` في Environment الخاصة بـStaging. لا تُرفع القيم إلى Git.
 3. شغّل `pnpm db:migrate` على قاعدة V2 المعزولة، ثم Build. إعدادات التطبيق تحتوي Provider/Pixel؛ لا تُدخل Production Pixel في معاينة الاختبارات.
 4. اضبط EcoTrack التجريبي وTelegram اختبار من إعدادات الإدارة، وتحقق من API permissions قبل تشغيل أوامر الشحن.
-5. `vercel.json` يضبط `/api/jobs` كل خمس دقائق. هذه الوتيرة تحتاج خطة Vercel تدعمها (عادة Pro). إن لم تدعمها خطتك، أزل بند Cron المرفق واستخدم Scheduler خارجيًا يرسل GET إلى `/api/jobs` مع `Authorization: Bearer <CRON_SECRET>`.
+5. خطة Vercel Hobby تسمح بـCron واحد يوميًا فقط. لذلك يضبط `vercel.json` مسار `/api/jobs` يوميًا عند 03:00 UTC كي ينجح النشر. زر **مزامنة الحالات الآن** في الإدارة يبقى متاحًا دائمًا للمشغّل.
+
+   لتحديث حالات الشحن وTelegram كل عدة دقائق، استخدم Scheduler خارجيًا يرسل `GET` إلى `/api/jobs` مع `Authorization: Bearer <CRON_SECRET>`، أو رقِّ مشروع Vercel إلى Pro ثم بدّل الجدول إلى `*/5 * * * *`. لا تضف `CRON_SECRET` إلى رابط عام أو إلى Git.
 
 ## Acceptance checks before cutover
 
