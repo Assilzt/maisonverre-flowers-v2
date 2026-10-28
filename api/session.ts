@@ -37,10 +37,14 @@ export default async function session(request: Request, response: Response) {
     )[0];
     await consumeBudget("login:" + ip, 10, 60);
     const password = String(getBody(request.body).password || "");
-    if (
-      !process.env.DASHBOARD_PASSWORD ||
-      !secureEqual(password, process.env.DASHBOARD_PASSWORD)
-    ) {
+    if (!process.env.DASHBOARD_PASSWORD) {
+      response.status(503).json({
+        error:
+          "لوحة الإدارة غير مهيأة: أضف DASHBOARD_PASSWORD إلى Environment Variables ثم أعد النشر",
+      });
+      return;
+    }
+    if (!secureEqual(password, process.env.DASHBOARD_PASSWORD)) {
       response.status(401).json({ error: "بيانات الدخول غير صحيحة" });
       return;
     }

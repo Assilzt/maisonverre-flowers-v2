@@ -23,6 +23,7 @@ import { DEFAULT_PRODUCT } from "../shared/catalog";
 import { shippingStatus, remoteActionAllowed } from "../shared/shipping-status";
 import { flushNotifications } from "../backend/jobs/notifications";
 import pages from "../api/pages";
+import session from "../api/session";
 import { updateShip } from "../backend/handlers/update-ship";
 import { readOrders } from "../backend/handlers/read";
 import { cancelLocalShipment } from "../backend/repositories/stock";
@@ -92,6 +93,19 @@ afterAll(async () => {
 });
 
 describe("Durable orders and protected state", () => {
+  it("distinguishes a missing dashboard configuration from a wrong password", async () => {
+    const previous = process.env.DASHBOARD_PASSWORD;
+    delete process.env.DASHBOARD_PASSWORD;
+    const missing = capture();
+    await session(request({ password: "anything" }), missing.response);
+    expect(missing.code).toBe(503);
+    expect(String(missing.body.error)).toContain("DASHBOARD_PASSWORD");
+    process.env.DASHBOARD_PASSWORD = previous;
+    const invalid = capture();
+    await session(request({ password: "wrong" }), invalid.response);
+    expect(invalid.code).toBe(401);
+  });
+
   it("prices the flower bundle on the server and atomically queues Telegram", async () => {
     const body = orderInput(),
       c = capture();

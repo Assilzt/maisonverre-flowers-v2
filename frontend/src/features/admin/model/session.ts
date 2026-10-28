@@ -86,7 +86,10 @@ export function useDashboardSession(
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password: nextPassword }),
         });
-        if (!login.ok) throw new Error("كلمة المرور غير صحيحة");
+        if (!login.ok) {
+          const detail = await login.json().catch(() => ({}));
+          throw new Error(detail.error || "كلمة المرور غير صحيحة");
+        }
       }
       const params = new URLSearchParams({
         page: String(ordersPage),
