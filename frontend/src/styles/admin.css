@@ -1497,3 +1497,232 @@
 .admin-app .field-wide {
   grid-column: 1/-1;
 }
+
+/* The operations dashboard deliberately uses the original Maisonverre layout.
+   Product, order and shipping workspaces share these tokens without changing
+   their API or order-processing behaviour. */
+.admin-app.legacy-dashboard {
+  display: block;
+  background: #f4f6f5;
+  min-height: 100dvh;
+  padding: 30px clamp(16px, 3vw, 48px) 44px;
+}
+.legacy-header {
+  max-width: 1500px;
+  margin: 0 auto 28px;
+  display: flex;
+  min-height: 92px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.legacy-heading {
+  text-align: right;
+}
+.legacy-heading > p {
+  margin: 0 0 7px;
+  color: #52675e;
+  font:
+    700 10px/1.4 system-ui,
+    sans-serif;
+  letter-spacing: 0.22em;
+}
+.legacy-heading h1 {
+  margin: 0;
+  color: #122c22;
+  font-size: clamp(25px, 2.2vw, 34px);
+  font-weight: 800;
+}
+.legacy-heading > span {
+  display: block;
+  margin-top: 5px;
+  color: #64746d;
+  font-size: 13px;
+}
+.legacy-quick-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 20px;
+}
+.legacy-quick-actions a,
+.legacy-quick-actions button:not(.legacy-menu) {
+  min-height: 40px;
+  border: 1px solid #d6dfda;
+  border-radius: 10px;
+  padding: 9px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #fff;
+  color: #1b3329;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px #173b2c08;
+}
+.legacy-quick-actions button:not(.legacy-menu) {
+  font: inherit;
+  cursor: pointer;
+}
+.legacy-quick-actions a:hover,
+.legacy-quick-actions button:not(.legacy-menu):hover {
+  background: #edf3ef;
+}
+.legacy-menu {
+  display: none;
+}
+.legacy-nav-row {
+  max-width: 1500px;
+  margin: 0 auto 28px;
+  display: flex;
+  justify-content: flex-start;
+}
+.legacy-dashboard .legacy-tabs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 0;
+}
+.legacy-dashboard .legacy-tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid #d6dfda;
+  border-radius: 10px;
+  background: #fff;
+  color: #35483f;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px #173b2c08;
+}
+.legacy-dashboard .legacy-tabs a:hover {
+  background: #edf3ef;
+}
+.legacy-dashboard .legacy-tabs a.active {
+  border-color: #174a37;
+  background: #174a37;
+  box-shadow: none;
+  color: #fff;
+}
+.legacy-dashboard .workspace-main {
+  min-width: 0;
+}
+.legacy-dashboard .workspace-content {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0;
+}
+.legacy-dashboard .page-heading {
+  min-height: 74px;
+  margin-bottom: 20px;
+  padding: 20px 23px;
+  border: 1px solid #dce4df;
+  border-radius: 16px;
+  background: #fff;
+  align-items: center;
+}
+.legacy-dashboard .page-heading h1 {
+  color: #183429;
+  font-size: 21px;
+}
+.legacy-dashboard .page-heading p {
+  color: #718077;
+}
+.legacy-dashboard .page-actions .btn {
+  border-radius: 9px;
+  min-height: 39px;
+}
+.legacy-dashboard .panel,
+.legacy-dashboard .orders-panel,
+.legacy-dashboard .stat-card {
+  border-color: #dce4df;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px #173b2c06;
+}
+.legacy-dashboard .orders-panel {
+  overflow: visible;
+}
+.legacy-dashboard .orders-toolbar {
+  padding: 18px 20px;
+}
+.legacy-dashboard .stat-card {
+  padding: 18px 20px;
+}
+.legacy-dashboard .section-tabs {
+  border: 1px solid #dce4df;
+  border-radius: 15px;
+  padding: 8px 10px 0;
+  background: #fff;
+}
+.legacy-dashboard .section-tabs button {
+  padding: 7px 11px 13px;
+  border-bottom-width: 3px;
+}
+.legacy-dashboard .notice {
+  border-radius: 13px;
+}
+.legacy-dashboard .dialog-surface {
+  border-radius: 16px;
+}
+.legacy-mobile-nav {
+  display: grid;
+  gap: 8px;
+}
+.legacy-mobile-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 9px;
+  color: #35483f;
+  font-weight: 700;
+}
+.legacy-mobile-nav a.active {
+  background: #edf5ef;
+  color: #174a37;
+}
+@media (max-width: 700px) {
+  .admin-app.legacy-dashboard {
+    padding: 20px 14px 30px;
+  }
+  .legacy-header {
+    margin-bottom: 20px;
+    min-height: 0;
+  }
+  .legacy-heading > span {
+    font-size: 11px;
+  }
+  .legacy-quick-actions {
+    padding-top: 0;
+    justify-content: flex-end;
+  }
+  .legacy-quick-actions a {
+    display: none;
+  }
+  .legacy-quick-actions .legacy-menu {
+    display: inline-flex;
+  }
+  .legacy-nav-row {
+    margin-bottom: 18px;
+    overflow-x: auto;
+  }
+  .legacy-dashboard .legacy-tabs {
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+  .legacy-dashboard .legacy-tabs a {
+    padding: 8px 12px;
+  }
+  .legacy-dashboard .legacy-tabs a svg {
+    display: none;
+  }
+  .legacy-dashboard .page-heading {
+    padding: 16px;
+  }
+}

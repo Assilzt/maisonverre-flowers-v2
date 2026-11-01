@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard,
   ClipboardList,
   Package,
   Truck,
@@ -15,12 +14,6 @@ import "@/styles/admin.css";
 export type AdminArea =
   "overview" | "orders" | "products" | "shipping" | "reports" | "settings";
 export const navigation = [
-  {
-    id: "overview",
-    label: "نظرة عامة",
-    href: "/admin/overview",
-    icon: LayoutDashboard,
-  },
   { id: "orders", label: "الطلبات", href: "/admin", icon: ClipboardList },
   { id: "products", label: "المنتجات", href: "/admin/products", icon: Package },
   {
@@ -35,6 +28,12 @@ export const navigation = [
     label: "الإعدادات",
     href: "/admin/settings",
     icon: Settings,
+  },
+  {
+    id: "overview",
+    label: "المهام والأخطاء",
+    href: "/admin/overview",
+    icon: BarChart3,
   },
 ] as const;
 export function AdminShell({
@@ -54,8 +53,11 @@ export function AdminShell({
   useEffect(() => {
     document.title = title + " — Atlasio";
   }, [title]);
-  const links = (
-    <nav aria-label="التنقل الرئيسي">
+  const links = (mobile = false) => (
+    <nav
+      aria-label="التنقل الرئيسي"
+      className={mobile ? "legacy-mobile-nav" : "legacy-tabs"}
+    >
       {navigation.map(({ id, label, href, icon: Icon }) => (
         <a
           key={id}
@@ -74,54 +76,38 @@ export function AdminShell({
     window.location.assign("/admin");
   };
   return (
-    <div className="admin-app" dir="rtl">
+    <div className="admin-app legacy-dashboard" dir="rtl">
       <a className="skip-link" href="#workspace-content">
         انتقل إلى المحتوى
       </a>
-      <aside className="workspace-sidebar">
-        <a className="workspace-brand" href="/admin/overview">
-          <span className="brand-symbol">
-            a<span>.</span>
-          </span>
-          <span>
-            Atlasio<small>إدارة المتجر</small>
-          </span>
-        </a>
-        <p className="nav-caption">مساحة العمل</p>
-        {links}
-        <footer>
+      <header className="legacy-header">
+        <div className="legacy-heading">
+          <p>MAISONVERRE / OPERATIONS</p>
+          <h1>إدارة المتجر</h1>
+          <span>الطلب، الشحنة، والتحصيل — حالات واضحة ومستقلة</span>
+        </div>
+        <div className="legacy-quick-actions">
           <a href="/" target="_blank" rel="noreferrer">
-            <ArrowUpLeft size={18} />
-            فتح المتجر
+            <ArrowUpLeft size={16} /> المتجر
+          </a>
+          <a href="/admin/products">
+            <Package size={16} /> محرر الصفحات
           </a>
           <button type="button" onClick={() => void logout()}>
-            <LogOut size={18} />
-            تسجيل الخروج
+            <LogOut size={16} /> خروج
           </button>
-          <span className="workspace-version">MAISONVERRE · V2</span>
-        </footer>
-      </aside>
-      <div className="workspace-main">
-        <div className="workspace-topbar">
-          <div className="toolbar">
-            <button
-              type="button"
-              className="icon-button mobile-menu"
-              aria-label="فتح قائمة التنقل"
-              onClick={() => setOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-            <span>
-              مساحة العمل <span className="breadcrumb-divider">/</span>{" "}
-              {navigation.find(n => n.id === active)?.label}
-            </span>
-          </div>
-          <div className="account-mark">
-            <span className="account-avatar">A</span>
-            <span>إدارة المتجر</span>
-          </div>
+          <button
+            type="button"
+            className="icon-button legacy-menu"
+            aria-label="فتح قائمة التنقل"
+            onClick={() => setOpen(true)}
+          >
+            <Menu size={20} />
+          </button>
         </div>
+      </header>
+      <div className="legacy-nav-row">{links()}</div>
+      <div className="workspace-main">
         <main id="workspace-content" className="workspace-content">
           <header className="page-heading">
             <div>
@@ -132,13 +118,10 @@ export function AdminShell({
           </header>
           {children}
         </main>
-        <footer className="workspace-footer">
-          Atlasio <span>مساحة واحدة لإدارة متجرك</span>
-        </footer>
       </div>
       {open && (
         <Dialog drawer title="مساحة العمل" onClose={() => setOpen(false)}>
-          {links}
+          {links(true)}
           <a className="btn" href="/" target="_blank" rel="noreferrer">
             فتح المتجر
             <ArrowUpLeft size={16} />
