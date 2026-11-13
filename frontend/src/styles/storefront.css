@@ -466,16 +466,22 @@
 
 .flower-final-total {
   padding: 10px 12px;
+  border: 1px solid #bfe3cd;
   border-radius: 10px;
   background: #fff;
+  color: #0f3f27;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
   text-align: center;
 }
 
 .flower-copy-card form > div:has(> p > span.text-xl) {
   margin: 20px 0 16px !important;
-  border: 1px dashed #888 !important;
-  border-radius: 8px !important;
-  background: #f6f6f6 !important;
+  padding: 18px 16px !important;
+  border: 1px solid #cfe3d7 !important;
+  border-inline-start: 4px solid #17633a !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #fbfdfb 0%, #eef8f2 100%) !important;
 }
 
 .flower-copy-card form button[type="submit"] {
@@ -493,6 +499,71 @@
 .flower-copy-card form button[type="submit"]:hover {
   background: #fff !important;
   color: #0a0a0a !important;
+}
+
+/* Product description sits with the product copy, not inside the order form. */
+.flower-copy-card > .flower-seed-note {
+  order: 4 !important;
+  margin: 10px 0 4px !important;
+  color: #6b7280 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.75;
+  text-align: right;
+}
+
+.flower-order-header p {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.flower-field-help {
+  margin: -6px 0 0;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.flower-field-help.is-error {
+  color: #dc2626;
+}
+
+.flower-copy-card form input[aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  background: #fef2f2 !important;
+}
+
+.flower-copy-card form input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 12%) !important;
+}
+
+.flower-copy-card form button[type="submit"]:disabled {
+  background: #3f3f3f !important;
+  color: #f5f5f5 !important;
+  opacity: 0.85;
+}
+
+.flower-package-price,
+.flower-final-total {
+  font-variant-numeric: tabular-nums;
+}
+
+.flower-landing a:focus-visible,
+.flower-landing button:focus-visible,
+.flower-landing select:focus-visible {
+  outline: 3px solid #17633a;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flower-landing *,
+  .flower-landing *::before,
+  .flower-landing *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
 }
 
 @media (min-width: 768px) {

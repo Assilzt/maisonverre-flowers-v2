@@ -1726,3 +1726,88 @@
     padding: 16px;
   }
 }
+
+/* UI polish: readability, focus and dense data views. */
+.legacy-dashboard h1,
+.legacy-dashboard h2 {
+  text-wrap: balance;
+}
+.legacy-dashboard .page-heading {
+  flex-wrap: wrap;
+  row-gap: 14px;
+  align-items: center;
+}
+.legacy-dashboard .page-actions {
+  row-gap: 8px;
+  justify-content: flex-end;
+}
+.legacy-dashboard .page-actions .btn {
+  min-height: 40px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.orders-table {
+  font-variant-numeric: tabular-nums;
+}
+.orders-panel .orders-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fafcfb;
+  box-shadow: inset 0 -1px var(--line);
+}
+.orders-table tbody tr:nth-child(even):not(.selected) {
+  background: #fcfdfb;
+}
+.orders-table tbody tr:hover {
+  background: #f2f8f4;
+}
+.orders-table tbody tr:focus-within {
+  outline: 2px solid #8bc5ac;
+  outline-offset: -2px;
+}
+.orders-table .order-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.section-tabs {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+.section-tabs button {
+  scroll-snap-align: start;
+}
+.admin-app.login-page .login-card {
+  padding: 40px 36px 32px;
+  border-color: #dfe8e2;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgb(18 44 34 / 10%);
+  text-align: center;
+}
+.admin-app.login-page .login-card .brand-symbol {
+  display: inline-block;
+  margin: 0 auto;
+  line-height: 1;
+}
+.admin-app.login-page .login-card h1 {
+  margin-top: 14px;
+  letter-spacing: -0.4px;
+}
+.admin-app.login-page .login-card > p {
+  max-width: 32ch;
+  margin: 8px auto 0;
+  line-height: 1.7;
+}
+.admin-app.login-page .login-card form {
+  margin-top: 26px;
+  text-align: right;
+}
+.admin-app.login-page .login-card form button {
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.admin-app.login-page .text-link {
+  font-size: 12px;
+}

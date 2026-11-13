@@ -118,7 +118,7 @@ export default function Dashboard() {
       <div className="mx-auto flex min-h-screen max-w-[1500px]">
         <DashboardSidebar context={context} />
         <section className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-10 lg:py-8">
-          <header className="mb-5 flex items-center justify-between">
+          <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -137,7 +137,14 @@ export default function Dashboard() {
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                className="hidden h-11 items-center gap-2 rounded-2xl bg-emerald-500 px-4 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 active:scale-95 sm:flex"
+              >
+                <Truck className="h-4 w-4" /> شحن المؤكدين
+              </button>
               <a
                 href="/admin/products"
                 className="flex h-11 items-center rounded-2xl bg-emerald-600 px-3 text-xs font-bold text-white sm:text-sm"
@@ -147,6 +154,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => void loadOrders()}
+                aria-label="تحديث الطلبات"
                 className="flex h-11 items-center gap-2 rounded-2xl bg-white px-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition active:scale-95"
               >
                 <RefreshCw
@@ -163,20 +171,11 @@ export default function Dashboard() {
               </button>
             </div>
           </header>
-          <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-sm text-slate-500">{sectionDescription}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-400">
-                عرض {visibleOrders.length} من {orders.length} طلب
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="hidden items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition active:scale-95 hover:bg-emerald-600 sm:flex"
-            >
-              <Truck className="h-4 w-4" /> شحن المؤكدين
-            </button>
+          <div className="mb-5">
+            <p className="text-sm text-slate-500">{sectionDescription}</p>
+            <p className="mt-1 text-sm font-semibold text-slate-400">
+              عرض {visibleOrders.length} من {orders.length} طلب
+            </p>
           </div>
           {section === "orders" && (
             <section className="mb-5 rounded-[26px] bg-slate-950 p-3 text-white shadow-xl shadow-slate-950/10 sm:p-4">
@@ -263,29 +262,29 @@ export default function Dashboard() {
             </section>
           )}
           <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-[22px] bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
+            <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/70">
               <p className="text-xs font-bold text-slate-400">في هذا القسم</p>
-              <p className="mt-2 text-2xl font-black">
+              <p className="mt-1 text-xl font-black tabular-nums">
                 {section === "orders"
                   ? orders.filter(order => order.status !== "trashed").length
                   : visibleOrders.length}
               </p>
             </div>
-            <div className="rounded-[22px] bg-emerald-50 p-4 ring-1 ring-emerald-100">
+            <div className="rounded-2xl bg-emerald-50 p-3 ring-1 ring-emerald-100">
               <p className="text-xs font-bold text-emerald-700">مؤكدة</p>
-              <p className="mt-2 text-2xl font-black text-emerald-800">
+              <p className="mt-1 text-xl font-black tabular-nums text-emerald-800">
                 {confirmedCount}
               </p>
             </div>
-            <div className="rounded-[22px] bg-blue-50 p-4 ring-1 ring-blue-100">
+            <div className="rounded-2xl bg-blue-50 p-3 ring-1 ring-blue-100">
               <p className="text-xs font-bold text-blue-700">مرفوعة</p>
-              <p className="mt-2 text-2xl font-black text-blue-800">
+              <p className="mt-1 text-xl font-black tabular-nums text-blue-800">
                 {shippedCount}
               </p>
             </div>
-            <div className="rounded-[22px] bg-violet-50 p-4 ring-1 ring-violet-100">
+            <div className="rounded-2xl bg-violet-50 p-3 ring-1 ring-violet-100">
               <p className="text-xs font-bold text-violet-700">تم التسليم</p>
-              <p className="mt-2 text-2xl font-black text-violet-800">
+              <p className="mt-1 text-xl font-black tabular-nums text-violet-800">
                 {deliveredCount}
               </p>
             </div>

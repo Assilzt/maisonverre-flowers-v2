@@ -6,6 +6,8 @@ import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
 import { WILAYAS } from "@shared/locations";
 import { useCheckout } from "../checkout/useCheckout";
 import { ProductSections } from "./ProductSections";
+
+const money = (value: number) => value.toLocaleString("en-US");
 export default function FlowerLanding({
   product = DEFAULT_PRODUCT,
 }: {
@@ -73,6 +75,10 @@ export default function FlowerLanding({
               </p>
             </div>
 
+            <p className="flower-seed-note" dir="rtl">
+              {product.description}
+            </p>
+
             {submitted ? (
               <div className="text-center py-8">
                 <div className="text-5xl mb-4">✅</div>
@@ -83,7 +89,9 @@ export default function FlowerLanding({
                   تم استلام طلبك!
                 </h2>
                 <p className="text-gray-600" dir="rtl">
-                  سنتصل بك قريباً
+                  سنتصل بك خلال 24 ساعة لتأكيد الطلب.
+                  <br />
+                  احتفظ بهاتفك قريبًا منك.
                 </p>
                 <Button
                   onClick={startNewOrder}
@@ -97,6 +105,7 @@ export default function FlowerLanding({
                 {
                   <div className="flower-order-header" dir="rtl">
                     <h2>استمارة الطلب</h2>
+                    <p>املأ بياناتك وسنتصل بك لتأكيد الطلب</p>
                   </div>
                 }
                 <form
@@ -114,28 +123,35 @@ export default function FlowerLanding({
                       <span>رقم الهاتف</span>
                     </Label>
                     <div className="relative">
-                      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-lg text-pink-500">
-                        📱
-                      </span>
                       <Input
                         ref={phoneInputRef}
                         id="phone"
                         type="tel"
+                        inputMode="tel"
                         autoComplete="tel"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
                         required
-                        placeholder="رقم الهاتف"
-                        className="border-2 border-pink-200 bg-pink-50/30 px-4 py-3 pr-12 text-right text-base font-medium shadow-sm transition focus:border-pink-500 focus:ring-4 focus:ring-pink-100 placeholder:text-gray-400"
+                        placeholder="0551234567"
+                        className="border-2 border-pink-200 bg-pink-50/30 px-4 py-3 text-right text-base font-medium shadow-sm transition focus:border-pink-500 focus:ring-4 focus:ring-pink-100 placeholder:text-gray-400"
                         dir="rtl"
-                        aria-invalid={Boolean(phoneError)}
+                        aria-invalid={Boolean(phone && phoneError)}
+                        aria-describedby="phone-help"
                       />
                     </div>
-                    {phone && phoneError && (
-                      <p className="text-sm text-red-600" dir="rtl">
-                        {phoneError}
-                      </p>
-                    )}
+                    <p
+                      id="phone-help"
+                      className={
+                        "flower-field-help" +
+                        (phone && phoneError ? " is-error" : "")
+                      }
+                      role={phone && phoneError ? "alert" : undefined}
+                      dir="rtl"
+                    >
+                      {phone && phoneError
+                        ? phoneError
+                        : "مثال: 0551234567 أو ‎+213551234567‎"}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -146,21 +162,16 @@ export default function FlowerLanding({
                       <span className="text-lg">👤</span>
                       <span>الاسم</span>
                     </Label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-lg text-emerald-600">
-                        👤
-                      </span>
-                      <Input
-                        id="fullName"
-                        type="text"
-                        autoComplete="name"
-                        value={fullName}
-                        onChange={e => setFullName(e.target.value)}
-                        placeholder="أدخل اسمك الكامل"
-                        className="border-2 border-emerald-200 bg-emerald-50/40 px-4 py-3 pr-12 text-right text-base font-medium shadow-sm transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                        dir="rtl"
-                      />
-                    </div>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      autoComplete="name"
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                      placeholder="أدخل اسمك الكامل"
+                      className="border-2 border-emerald-200 bg-emerald-50/40 px-4 py-3 text-right text-base font-medium shadow-sm transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                      dir="rtl"
+                    />
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -207,7 +218,7 @@ export default function FlowerLanding({
                             ? "اختر الولاية أولاً"
                             : communes.length
                               ? "اختر البلدية من القائمة"
-                              : "جاري تحميل بلديات EcoTrack..."}
+                              : "جارٍ تحميل البلديات…"}
                         </option>
                         {communes.map(item => (
                           <option key={item.name} value={item.name}>
@@ -266,12 +277,6 @@ export default function FlowerLanding({
                     </div>
                   )}
 
-                  {
-                    <p className="flower-seed-note" dir="rtl">
-                      {product.description}
-                    </p>
-                  }
-
                   <div
                     className={`text-center py-3 px-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 flower-price-summary`}
                     dir="rtl"
@@ -279,13 +284,13 @@ export default function FlowerLanding({
                     <p className="text-base font-semibold text-gray-800">
                       {"سعر الباقة:"}{" "}
                       <span className="text-xl font-extrabold text-emerald-700">
-                        {offerPrice} {product.currency}
+                        {money(offerPrice)} {product.currency}
                       </span>
                     </p>
                     {compareAtTotal && offerPrice < compareAtTotal && (
                       <p className="mt-1 text-xs font-semibold text-gray-500">
                         <span className="line-through">
-                          {compareAtTotal} {product.currency}
+                          {money(compareAtTotal)} {product.currency}
                         </span>
                         <span className="mx-2 rounded-full bg-rose-100 px-2 py-1 text-rose-700">
                           خصم{" "}
@@ -306,7 +311,7 @@ export default function FlowerLanding({
                         {isFreeShipping
                           ? "مجاني"
                           : deliveryFeesStatus === "ready" && hasDeliveryFee
-                            ? `${deliveryFee} ${product.currency}`
+                            ? `${money(deliveryFee)} ${product.currency}`
                             : !wilaya
                               ? "يُحسب بعد اختيار الولاية"
                               : deliveryFeesStatus === "loading"
@@ -319,7 +324,7 @@ export default function FlowerLanding({
                     {isFreeShipping ||
                     (deliveryFeesStatus === "ready" && hasDeliveryFee) ? (
                       <p className="flower-final-total mt-2 text-lg font-black text-gray-950">
-                        الإجمالي النهائي: {offerPrice + deliveryFee}{" "}
+                        الإجمالي النهائي: {money(offerPrice + deliveryFee)}{" "}
                         {product.currency}
                       </p>
                     ) : (
