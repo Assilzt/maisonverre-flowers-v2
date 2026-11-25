@@ -36,6 +36,9 @@ export async function deliveryFees(settings: Settings) {
         fees.set(id, { wilaya_id: id, tarif: home, tarif_stopdesk: desk });
     }
   } catch {
+    // Keep selling while the carrier API is down: the last known fees are a
+    // better answer than refusing the order.
+    if (previous) return previous.fees;
     if (!Object.keys(settings.deliveryFees).length)
       throw new Error("تعذر تحميل رسوم التوصيل");
   }

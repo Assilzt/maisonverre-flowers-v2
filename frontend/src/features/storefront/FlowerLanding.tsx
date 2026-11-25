@@ -1,18 +1,41 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
+import { useEffect, useRef, useState } from "react";
+import {
+  DEFAULT_PRODUCT,
+  type ProductBundle,
+  type ProductLandingConfig,
+} from "@shared/catalog";
 import { WILAYAS } from "@shared/locations";
+import type { StorefrontConfig } from "@shared/storefront";
 import { useCheckout } from "../checkout/useCheckout";
 import { ProductSections } from "./ProductSections";
+import { ProductImage } from "./ProductImage";
+import { CheckIcon, Spinner } from "./icons";
 
 const money = (value: number) => value.toLocaleString("en-US");
+
+/** Savings versus buying single units at the first bundle's unit price. */
+function bundleSavings(bundle: ProductBundle, bundles: ProductBundle[]) {
+  const base = bundles[0];
+  if (!base || bundle === base) return 0;
+  const unit = base.price / base.quantity;
+  return Math.max(0, Math.round(unit * bundle.quantity - bundle.price));
+}
+
+const STEPS = [
+  "اختر العرض واملأ الاستمارة",
+  "نتصل بك لتأكيد الطلب",
+  "نرسل الطلب إلى منزلك أو مكتب الشحن",
+  "تدفع عند الاستلام",
+];
+
 export default function FlowerLanding({
   product = DEFAULT_PRODUCT,
+  storefront = {},
 }: {
   product?: ProductLandingConfig;
+  storefront?: StorefrontConfig;
 }) {
+  const checkout = useCheckout(product, storefront.fees);
   const {
     fullName,
     setFullName,
@@ -23,9 +46,19 @@ export default function FlowerLanding({
     phone,
     setPhone,
     communes,
+    communesStatus,
+    retryCommunes,
     deliveryFeesStatus,
+    retryDeliveryFees,
+    lowestDeliveryFee,
+    deliveryType,
+    setDeliveryType,
+    stopDeskAvailable,
     isSubmitting,
     submitted,
+    lastOrder,
+    formError,
+    selectedBundleQuantity,
     setSelectedBundleQuantity,
     phoneInputRef,
     selectedBundle,
@@ -38,328 +71,520 @@ export default function FlowerLanding({
     trackInitiateCheckout,
     handleSubmit,
     startNewOrder,
-  } = useCheckout(product);
+  } = checkout;
+
+  const bundles = product.bundles || [];
+  const lowestPrice = bundles.length
+    ? Math.min(...bundles.map(b => b.price))
+    : product.price;
+  const bestValue =
+    bundles.length > 1
+      ? bundles.reduce((best, b) =>
+          b.price / b.quantity < best.price / best.quantity ? b : best
+        )
+      : undefined;
+  const showTrust = product.sections?.trust !== false;
+  const faq =
+    product.faq ??
+    (product.slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT.faq : undefined);
+  const feeReady =
+    isFreeShipping || (deliveryFeesStatus === "ready" && hasDeliveryFee);
+  const total = offerPrice + (feeReady ? deliveryFee : 0);
+  const fieldError = (field: string) =>
+    formError?.field === field ? formError.message : "";
+
+  // Sticky call-to-action, shown only while the order form is off screen.
+  const orderRef = useRef<HTMLElement | null>(null);
+  const [orderVisible, setOrderVisible] = useState(true);
+  useEffect(() => {
+    const target = orderRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setOrderVisible(entry.isIntersecting),
+      { rootMargin: "0px 0px -15% 0px" }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  const deliveryText = isFreeShipping
+    ? "مجاني"
+    : deliveryFeesStatus === "ready" && hasDeliveryFee
+      ? `${money(deliveryFee)} ${product.currency}`
+      : !wilaya
+        ? lowestDeliveryFee !== null
+          ? `ابتداءً من ${money(lowestDeliveryFee)} ${product.currency}`
+          : "يُحسب بعد اختيار الولاية"
+        : deliveryFeesStatus === "loading"
+          ? "جارٍ احتسابه…"
+          : deliveryFeesStatus === "error"
+            ? "تعذّر تحميل السعر"
+            : "غير متاح لهذه الولاية";
+
   return (
-    <div className="min-h-screen relative overflow-hidden flower-landing">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(236,253,245,0.95),_transparent_52%),linear-gradient(135deg,_#fff7ed_0%,_#fdf2f8_48%,_#ecfdf5_100%)]">
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm"></div>
+    <div className="mv-landing" dir="rtl">
+      <div className="mv-topbar" role="note">
+        <span>الدفع عند الاستلام</span>
+        <span aria-hidden="true">•</span>
+        <span>توصيل للمنزل أو مكتب الشحن</span>
       </div>
 
-      <div className="flower-announcement" role="note" dir="rtl">
-        🌼{" "}
-        {product.slug === DEFAULT_PRODUCT.slug
-          ? "مجموعة 4 أنواع من بذور الزهور"
-          : product.name}{" "}
-        <span aria-hidden="true">·</span> الدفع عند الاستلام
-      </div>
-
-      <div
-        className={`relative z-10 container mx-auto px-4 py-8 max-w-6xl flower-content`}
-      >
-        <div className={`grid md:grid-cols-2 gap-8 items-start flower-layout`}>
-          <div
-            className={`order-2 md:order-none bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-8 border border-pink-100 flower-copy-card`}
-          >
-            <h1
-              className="text-2xl md:text-3xl font-bold text-center mb-3 text-gray-800"
-              dir="rtl"
-            >
-              {product.headline} 🌼
-            </h1>
-            <div
-              className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-center shadow-sm"
-              dir="rtl"
-            >
-              <p className="text-base font-extrabold text-emerald-800">
-                🌼 {product.subheadline}
-              </p>
-            </div>
-
-            <p className="flower-seed-note" dir="rtl">
-              {product.description}
-            </p>
-
-            {submitted ? (
-              <div className="text-center py-8">
-                <div className="text-5xl mb-4">✅</div>
-                <h2
-                  className="text-xl font-semibold text-green-600 mb-2"
-                  dir="rtl"
-                >
-                  تم استلام طلبك!
-                </h2>
-                <p className="text-gray-600" dir="rtl">
-                  سنتصل بك خلال 24 ساعة لتأكيد الطلب.
-                  <br />
-                  احتفظ بهاتفك قريبًا منك.
-                </p>
-                <Button
-                  onClick={startNewOrder}
-                  className="mt-4 bg-pink-500 hover:bg-pink-600"
-                >
-                  طلب جديد
-                </Button>
-              </div>
-            ) : (
-              <div className="rounded-3xl border border-pink-100 bg-white/95 p-4 shadow-[0_8px_30px_rgba(244,114,182,0.08)] ring-1 ring-white/60 md:p-6">
-                {
-                  <div className="flower-order-header" dir="rtl">
-                    <h2>استمارة الطلب</h2>
-                    <p>املأ بياناتك وسنتصل بك لتأكيد الطلب</p>
-                  </div>
-                }
-                <form
-                  id="lead-form"
-                  onSubmit={handleSubmit}
-                  onFocus={trackInitiateCheckout}
-                  className="space-y-4"
-                >
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="phone"
-                      className="flex items-center gap-2 text-base font-bold text-gray-800"
-                    >
-                      <span className="text-lg">📱</span>
-                      <span>رقم الهاتف</span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        ref={phoneInputRef}
-                        id="phone"
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        required
-                        placeholder="0551234567"
-                        className="border-2 border-pink-200 bg-pink-50/30 px-4 py-3 text-right text-base font-medium shadow-sm transition focus:border-pink-500 focus:ring-4 focus:ring-pink-100 placeholder:text-gray-400"
-                        dir="rtl"
-                        aria-invalid={Boolean(phone && phoneError)}
-                        aria-describedby="phone-help"
-                      />
-                    </div>
-                    <p
-                      id="phone-help"
-                      className={
-                        "flower-field-help" +
-                        (phone && phoneError ? " is-error" : "")
-                      }
-                      role={phone && phoneError ? "alert" : undefined}
-                      dir="rtl"
-                    >
-                      {phone && phoneError
-                        ? phoneError
-                        : "مثال: 0551234567 أو ‎+213551234567‎"}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="fullName"
-                      className="flex items-center gap-2 text-base font-bold text-gray-800"
-                    >
-                      <span className="text-lg">👤</span>
-                      <span>الاسم</span>
-                    </Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      autoComplete="name"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
-                      placeholder="أدخل اسمك الكامل"
-                      className="border-2 border-emerald-200 bg-emerald-50/40 px-4 py-3 text-right text-base font-medium shadow-sm transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                      dir="rtl"
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="wilaya"
-                        className="text-base font-bold text-gray-800"
-                      >
-                        الولاية
-                      </Label>
-                      <select
-                        id="wilaya"
-                        value={wilaya}
-                        onChange={event => setWilaya(event.target.value)}
-                        className="h-12 w-full rounded-4xl border-2 border-amber-200 bg-amber-50/40 px-4 text-right text-base font-medium shadow-sm outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
-                        dir="rtl"
-                      >
-                        <option value="">اختر الولاية</option>
-                        {WILAYAS.map(w => (
-                          <option key={w} value={w}>
-                            {w}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="commune"
-                        className="text-base font-bold text-gray-800"
-                      >
-                        البلدية
-                      </Label>
-                      <select
-                        id="commune"
-                        value={commune}
-                        onChange={event => setCommune(event.target.value)}
-                        disabled={!wilaya || communes.length === 0}
-                        className="h-12 w-full rounded-4xl border-2 border-amber-200 bg-amber-50/40 px-4 text-right text-base font-medium shadow-sm outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:opacity-70"
-                        dir="rtl"
-                      >
-                        <option value="">
-                          {!wilaya
-                            ? "اختر الولاية أولاً"
-                            : communes.length
-                              ? "اختر البلدية من القائمة"
-                              : "جارٍ تحميل البلديات…"}
-                        </option>
-                        {communes.map(item => (
-                          <option key={item.name} value={item.name}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {product.bundles && (
-                    <div
-                      className={`flower-package-grid ${product.bundles.length === 1 ? "flower-package-grid-single" : ""}`}
-                      dir="rtl"
-                      role="group"
-                      aria-label={"اختر عدد الطلبات: " + product.name}
-                    >
-                      {product.bundles.map(bundle => (
-                        <button
-                          key={bundle.quantity}
-                          type="button"
-                          aria-label={`باقة ${bundle.label} بسعر ${bundle.price} ${product.currency}${bundle.quantity === 3 ? "، والتوصيل مجاني" : ""}`}
-                          aria-pressed={
-                            selectedBundle?.quantity === bundle.quantity
-                          }
-                          onClick={() =>
-                            setSelectedBundleQuantity(bundle.quantity)
-                          }
-                          className={`flower-package-option ${selectedBundle?.quantity === bundle.quantity ? "selected" : ""}`}
-                        >
-                          <span className="flower-package-heading">
-                            <span className="flower-package-count">
-                              {bundle.quantity}
-                            </span>
-                            <span className="flower-package-unit">
-                              {bundle.quantity === 1
-                                ? "طلب واحد"
-                                : bundle.quantity === 2
-                                  ? "طلبان"
-                                  : "طلبات"}
-                            </span>
-                          </span>
-                          <span className="flower-package-price">
-                            {bundle.price.toLocaleString("en-US")}{" "}
-                            <small>{product.currency}</small>
-                          </span>
-                          <span
-                            className={`flower-package-detail${bundle.quantity === 3 ? " flower-package-detail-free" : ""}`}
-                          >
-                            {bundle.quantity === 3
-                              ? "توصيل مجاني"
-                              : `${Math.round(bundle.price / bundle.quantity).toLocaleString("en-US")} دج لكل طلب`}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <div
-                    className={`text-center py-3 px-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 flower-price-summary`}
-                    dir="rtl"
-                  >
-                    <p className="text-base font-semibold text-gray-800">
-                      {"سعر الباقة:"}{" "}
-                      <span className="text-xl font-extrabold text-emerald-700">
-                        {money(offerPrice)} {product.currency}
-                      </span>
-                    </p>
-                    {compareAtTotal && offerPrice < compareAtTotal && (
-                      <p className="mt-1 text-xs font-semibold text-gray-500">
-                        <span className="line-through">
-                          {money(compareAtTotal)} {product.currency}
-                        </span>
-                        <span className="mx-2 rounded-full bg-rose-100 px-2 py-1 text-rose-700">
-                          خصم{" "}
-                          {Math.round(
-                            ((compareAtTotal - offerPrice) / compareAtTotal) *
-                              100
-                          )}
-                          %
-                        </span>
-                      </p>
-                    )}
-                    <div
-                      className="mt-3 flex items-center justify-between gap-3 border-t border-emerald-200 pt-3 text-sm font-semibold text-gray-700"
-                      dir="rtl"
-                    >
-                      <span>التوصيل إلى المنزل</span>
-                      <span className="text-gray-900">
-                        {isFreeShipping
-                          ? "مجاني"
-                          : deliveryFeesStatus === "ready" && hasDeliveryFee
-                            ? `${money(deliveryFee)} ${product.currency}`
-                            : !wilaya
-                              ? "يُحسب بعد اختيار الولاية"
-                              : deliveryFeesStatus === "loading"
-                                ? "جارٍ احتسابه…"
-                                : deliveryFeesStatus === "error"
-                                  ? "تعذّر تحميل الرسم"
-                                  : "غير متاح لهذه الولاية"}
-                      </span>
-                    </div>
-                    {isFreeShipping ||
-                    (deliveryFeesStatus === "ready" && hasDeliveryFee) ? (
-                      <p className="flower-final-total mt-2 text-lg font-black text-gray-950">
-                        الإجمالي النهائي: {money(offerPrice + deliveryFee)}{" "}
-                        {product.currency}
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-xs font-semibold text-gray-600">
-                        {!wilaya
-                          ? "اختر الولاية لعرض المبلغ النهائي شامل التوصيل"
-                          : deliveryFeesStatus === "loading"
-                            ? "سيظهر المبلغ النهائي بعد احتساب التوصيل"
-                            : "لا يمكن تأكيد الإجمالي حتى تتوفر رسوم التوصيل"}
-                      </p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:via-amber-600 hover:to-orange-700 text-white font-black text-lg py-6 shadow-lg shadow-orange-300/50 transition-all duration-200 active:scale-[0.99]"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        جاري الإرسال...
-                      </>
-                    ) : (
-                      "أرسل الطلب للتأكيد"
-                    )}
-                  </Button>
-                </form>
-              </div>
-            )}
+      <main className="mv-main">
+        <section className="mv-hero">
+          <div className="mv-media">
+            <ProductImage images={product.images} />
           </div>
+          <div className="mv-hero-copy">
+            <h1>{product.headline}</h1>
+            {product.subheadline && (
+              <p className="mv-sub">{product.subheadline}</p>
+            )}
+            <p className="mv-price-line">
+              ابتداءً من{" "}
+              <strong>
+                {money(lowestPrice)} {product.currency}
+              </strong>
+              {product.compareAtPrice &&
+                product.compareAtPrice > lowestPrice && (
+                  <s>
+                    {money(product.compareAtPrice)} {product.currency}
+                  </s>
+                )}
+            </p>
+            {showTrust && product.trustBadges.length > 0 && (
+              <ul className="mv-chips">
+                {product.trustBadges.map((badge, i) => (
+                  <li key={i}>
+                    <CheckIcon />
+                    {badge}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <a className="mv-hero-cta" href="#order">
+              اطلب الآن
+            </a>
+          </div>
+        </section>
 
-          <ProductSections product={product} />
+        <section
+          id="order"
+          ref={orderRef}
+          className="mv-order"
+          aria-labelledby="order-title"
+        >
+          {submitted ? (
+            <div className="mv-success" role="status">
+              <div className="mv-success-icon" aria-hidden="true">
+                <CheckIcon />
+              </div>
+              <h2>تم استلام طلبك!</h2>
+              <p>
+                سنتصل بك خلال 24 ساعة لتأكيد الطلب. احتفظ بهاتفك قريبًا منك.
+              </p>
+              {lastOrder && (
+                <dl className="mv-summary">
+                  <div>
+                    <dt>العرض</dt>
+                    <dd>{lastOrder.bundleLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>التوصيل</dt>
+                    <dd>
+                      {lastOrder.deliveryType === "stop_desk"
+                        ? "مكتب الشحن"
+                        : "إلى المنزل"}{" "}
+                      — {lastOrder.commune}،{" "}
+                      {lastOrder.wilaya.replace(/^\d+\s*-\s*/, "")}
+                    </dd>
+                  </div>
+                  <div className="mv-summary-total">
+                    <dt>المبلغ عند الاستلام</dt>
+                    <dd>
+                      {money(lastOrder.price + lastOrder.deliveryFee)}{" "}
+                      {product.currency}
+                    </dd>
+                  </div>
+                </dl>
+              )}
+              <button
+                type="button"
+                className="mv-link-button"
+                onClick={startNewOrder}
+              >
+                طلب جديد
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mv-order-head">
+                <h2 id="order-title">اطلب الآن والدفع عند الاستلام</h2>
+                <p>اختر العرض، املأ بياناتك وسنتصل بك لتأكيد الطلب</p>
+              </div>
+
+              {bundles.length > 0 && (
+                <div
+                  className={
+                    "mv-offers" + (bundles.length === 1 ? " is-single" : "")
+                  }
+                  role="group"
+                  aria-label={"اختر العرض: " + product.name}
+                >
+                  {bundles.map(bundle => {
+                    const selected = selectedBundleQuantity === bundle.quantity;
+                    const savings = bundleSavings(bundle, bundles);
+                    const free =
+                      bundle.quantity === product.freeShippingQuantity;
+                    const badge =
+                      bundle === bestValue
+                        ? "أفضل قيمة"
+                        : bundle.quantity === product.defaultBundleQuantity
+                          ? "خيار مقترح"
+                          : "";
+                    return (
+                      <button
+                        key={bundle.quantity}
+                        type="button"
+                        aria-pressed={selected}
+                        aria-label={`${bundle.label} بسعر ${money(bundle.price)} ${product.currency}${free ? "، والتوصيل مجاني" : ""}`}
+                        onClick={() =>
+                          setSelectedBundleQuantity(bundle.quantity)
+                        }
+                        className={
+                          "mv-offer" + (selected ? " is-selected" : "")
+                        }
+                      >
+                        {badge && (
+                          <span className="mv-offer-badge">{badge}</span>
+                        )}
+                        <span className="mv-offer-radio" aria-hidden="true" />
+                        <span className="mv-offer-label">{bundle.label}</span>
+                        <span className="mv-offer-price">
+                          {money(bundle.price)}{" "}
+                          <small>{product.currency}</small>
+                        </span>
+                        <span className="mv-offer-note">
+                          {free
+                            ? "توصيل مجاني"
+                            : savings > 0
+                              ? `وفّر ${money(savings)} ${product.currency}`
+                              : bundle.quantity > 1
+                                ? `${money(Math.round(bundle.price / bundle.quantity))} ${product.currency} للواحد`
+                                : " "}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <form
+                id="lead-form"
+                onSubmit={handleSubmit}
+                onFocus={trackInitiateCheckout}
+                className="mv-form"
+                noValidate
+              >
+                <div className="mv-field">
+                  <label htmlFor="phone">رقم الهاتف</label>
+                  <input
+                    ref={phoneInputRef}
+                    id="phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    required
+                    maxLength={16}
+                    placeholder="0551234567"
+                    dir="ltr"
+                    aria-invalid={Boolean(
+                      (phone && phoneError) || fieldError("phone")
+                    )}
+                    aria-describedby="phone-help"
+                  />
+                  <p
+                    id="phone-help"
+                    className={
+                      "mv-help" +
+                      ((phone && phoneError) || fieldError("phone")
+                        ? " is-error"
+                        : "")
+                    }
+                    role={fieldError("phone") ? "alert" : undefined}
+                  >
+                    {fieldError("phone") ||
+                      (phone && phoneError) ||
+                      "سنتصل بك على هذا الرقم لتأكيد الطلب"}
+                  </p>
+                </div>
+
+                <div className="mv-field">
+                  <label htmlFor="fullName">الاسم الكامل</label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="الاسم واللقب"
+                  />
+                </div>
+
+                <div className="mv-row">
+                  <div className="mv-field">
+                    <label htmlFor="wilaya">الولاية</label>
+                    <select
+                      id="wilaya"
+                      value={wilaya}
+                      onChange={event => setWilaya(event.target.value)}
+                      aria-invalid={Boolean(fieldError("wilaya"))}
+                      aria-describedby={
+                        fieldError("wilaya") ? "wilaya-error" : undefined
+                      }
+                    >
+                      <option value="">اختر الولاية</option>
+                      {WILAYAS.map(w => (
+                        <option key={w} value={w}>
+                          {w}
+                        </option>
+                      ))}
+                    </select>
+                    {fieldError("wilaya") && (
+                      <p
+                        id="wilaya-error"
+                        className="mv-help is-error"
+                        role="alert"
+                      >
+                        {fieldError("wilaya")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mv-field">
+                    <label htmlFor="commune">البلدية</label>
+                    <select
+                      id="commune"
+                      value={commune}
+                      onChange={event => setCommune(event.target.value)}
+                      disabled={!wilaya || communes.length === 0}
+                      aria-invalid={Boolean(fieldError("commune"))}
+                      aria-describedby={
+                        fieldError("commune") ? "commune-error" : undefined
+                      }
+                    >
+                      <option value="">
+                        {!wilaya
+                          ? "اختر الولاية أولاً"
+                          : communesStatus === "loading"
+                            ? "جارٍ تحميل البلديات…"
+                            : communes.length
+                              ? "اختر البلدية"
+                              : "تعذّر تحميل البلديات"}
+                      </option>
+                      {communes.map(item => (
+                        <option key={item.name} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                    {communesStatus === "error" && wilaya && (
+                      <button
+                        type="button"
+                        className="mv-link-button mv-retry"
+                        onClick={retryCommunes}
+                      >
+                        إعادة تحميل البلديات
+                      </button>
+                    )}
+                    {fieldError("commune") && (
+                      <p
+                        id="commune-error"
+                        className="mv-help is-error"
+                        role="alert"
+                      >
+                        {fieldError("commune")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <fieldset className="mv-delivery">
+                  <legend>طريقة التوصيل</legend>
+                  <label
+                    className={deliveryType === "home" ? "is-selected" : ""}
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="home"
+                      checked={deliveryType === "home"}
+                      onChange={() => setDeliveryType("home")}
+                    />
+                    <span>إلى المنزل</span>
+                  </label>
+                  <label
+                    className={
+                      (deliveryType === "stop_desk" ? "is-selected" : "") +
+                      (!stopDeskAvailable ? " is-disabled" : "")
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="stop_desk"
+                      checked={deliveryType === "stop_desk"}
+                      disabled={!stopDeskAvailable}
+                      onChange={() => setDeliveryType("stop_desk")}
+                    />
+                    <span>
+                      مكتب الشحن
+                      <small>
+                        {!commune
+                          ? "اختر البلدية أولاً"
+                          : stopDeskAvailable
+                            ? "أرخص عادةً"
+                            : "غير متوفر في هذه البلدية"}
+                      </small>
+                    </span>
+                  </label>
+                </fieldset>
+
+                <div className="mv-total" aria-live="polite">
+                  <div>
+                    <span>{selectedBundle?.label || "سعر المنتج"}</span>
+                    <span>
+                      {compareAtTotal && offerPrice < compareAtTotal && (
+                        <s>
+                          {money(compareAtTotal)} {product.currency}
+                        </s>
+                      )}{" "}
+                      {money(offerPrice)} {product.currency}
+                    </span>
+                  </div>
+                  <div>
+                    <span>التوصيل</span>
+                    <span className={isFreeShipping ? "is-free" : ""}>
+                      {deliveryText}
+                    </span>
+                  </div>
+                  <div className="mv-total-final">
+                    <span>{feeReady ? "المجموع عند الاستلام" : "المجموع"}</span>
+                    <strong>
+                      {money(total)} {product.currency}
+                      {!feeReady && <small> + التوصيل</small>}
+                    </strong>
+                  </div>
+                </div>
+
+                {(formError?.field === "fees" ||
+                  formError?.field === "save") && (
+                  <div className="mv-alert" role="alert">
+                    <p>{formError.message}</p>
+                    {formError.field === "fees" && (
+                      <button
+                        type="button"
+                        className="mv-link-button"
+                        onClick={retryDeliveryFees}
+                      >
+                        إعادة المحاولة
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="mv-submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    "اطلب الآن — الدفع عند الاستلام"
+                  )}
+                </button>
+                <p className="mv-reassure">
+                  لن تدفع شيئاً الآن. سنتصل بك لتأكيد الطلب قبل الإرسال.
+                </p>
+              </form>
+            </>
+          )}
+        </section>
+
+        <section className="mv-steps" aria-labelledby="steps-title">
+          <h2 id="steps-title">كيف يتم الطلب؟</h2>
+          <ol>
+            {STEPS.map((step, i) => (
+              <li key={i}>
+                <span aria-hidden="true">{i + 1}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <ProductSections product={product} />
+
+        {product.reviews && product.reviews.length > 0 && (
+          <section className="mv-reviews" aria-labelledby="reviews-title">
+            <h2 id="reviews-title">آراء الزبائن</h2>
+            <ul>
+              {product.reviews.map((review, i) => (
+                <li key={i}>
+                  <p>{review.text}</p>
+                  <footer>
+                    <strong>{review.name}</strong>
+                    {review.place && <span> — {review.place}</span>}
+                  </footer>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {faq && faq.length > 0 && (
+          <section className="mv-faq" aria-labelledby="faq-title">
+            <h2 id="faq-title">أسئلة شائعة</h2>
+            {faq.map((item, i) => (
+              <details key={i}>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
+          </section>
+        )}
+
+        <section className="mv-final">
+          <p>
+            {product.name} — ابتداءً من {money(lowestPrice)} {product.currency}
+          </p>
+          <a className="mv-hero-cta" href="#order">
+            اطلب الآن
+          </a>
+        </section>
+      </main>
+
+      {!submitted && (
+        <div
+          className={"mv-sticky" + (orderVisible ? "" : " is-visible")}
+          aria-hidden={orderVisible}
+        >
+          <div>
+            <strong>
+              {money(offerPrice)} {product.currency}
+            </strong>
+            <span>{selectedBundle?.label}</span>
+          </div>
+          <a href="#order" tabIndex={orderVisible ? -1 : 0}>
+            اطلب الآن
+          </a>
         </div>
-      </div>
+      )}
     </div>
   );
 }

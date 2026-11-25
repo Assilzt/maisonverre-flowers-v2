@@ -1,3 +1,5 @@
+import { readEmbeddedStorefront } from "@shared/storefront";
+
 type PixelFunction = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void;
   queue?: unknown[][];
@@ -90,19 +92,35 @@ const sendEvent = (event: PendingPixelEvent) => {
   window.fbq("track", event.name, event.parameters);
 };
 
+const afterPageLoad = () =>
+  new Promise<void>(resolve => {
+    const idle = () => {
+      if (typeof window.requestIdleCallback === "function")
+        window.requestIdleCallback(() => resolve(), { timeout: 1500 });
+      else window.setTimeout(resolve, 300);
+    };
+    if (document.readyState === "complete") idle();
+    else window.addEventListener("load", idle, { once: true });
+  });
+
 export const initializeMetaPixel = (): Promise<void> => {
   if (initialization) return initialization;
   if (initialized || disabled) return Promise.resolve();
 
   initialization = (async () => {
     try {
-      await new Promise<void>(resolve => window.setTimeout(resolve, 1500));
-      const response = await fetch("/api/orders?resource=pixel-config", {
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Pixel configuration request failed");
-      const data = (await response.json()) as { pixelId?: unknown };
-      const pixelId = String(data.pixelId || "").trim();
+      // Let the page paint first; the pixel script is not needed to order.
+      await afterPageLoad();
+      const embedded = readEmbeddedStorefront().pixelId;
+      let pixelId = typeof embedded === "string" ? embedded.trim() : "";
+      if (typeof embedded !== "string") {
+        const response = await fetch("/api/orders?resource=pixel-config", {
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Pixel configuration request failed");
+        const data = (await response.json()) as { pixelId?: unknown };
+        pixelId = String(data.pixelId || "").trim();
+      }
       if (!pixelId || !/^\d{8,20}$/.test(pixelId)) {
         disabled = true;
         pendingEvents.length = 0;

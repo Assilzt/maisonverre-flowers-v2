@@ -23,7 +23,7 @@ export async function communes(
   if (cached && cached.expiresAt > Date.now()) {
     response.setHeader(
       "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=600"
+      "public, s-maxage=86400, stale-while-revalidate=604800"
     );
     response.status(200).json(cached.body);
     return;
@@ -37,7 +37,7 @@ export async function communes(
   });
   response.setHeader(
     "Cache-Control",
-    "public, s-maxage=300, stale-while-revalidate=600"
+    "public, s-maxage=86400, stale-while-revalidate=604800"
   );
   response.status(200).json(body);
   return;

@@ -7,7 +7,7 @@ export async function fees(
 ) {
   response.setHeader(
     "Cache-Control",
-    "public, s-maxage=60, stale-while-revalidate=60"
+    "public, s-maxage=300, stale-while-revalidate=86400"
   );
   response.status(200).json({ fees: await deliveryFees(settings) });
 }

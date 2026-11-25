@@ -8,6 +8,7 @@ import {
   type Response,
 } from "../repositories/index.js";
 import { invalidateFeeCache } from "../services/delivery-fees.js";
+import { purgeCache, STOREFRONT_CACHE_TAG } from "../services/cache-tags.js";
 import { validateOsenConnection } from "../integrations/osen/connection.js";
 const feeSchema = z.record(
   z.string().regex(/^(?:[1-9]|[1-4]\d|5[0-8])$/),
@@ -124,6 +125,7 @@ export async function updateSettings(
       )
     );
     invalidateFeeCache();
+    await purgeCache(STOREFRONT_CACHE_TAG);
     const current = await loadEcoSettings();
     response.status(200).json({
       provider: current.provider,

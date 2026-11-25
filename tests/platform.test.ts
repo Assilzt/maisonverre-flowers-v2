@@ -28,6 +28,7 @@ import { updateShip } from "../backend/handlers/update-ship";
 import { readOrders } from "../backend/handlers/read";
 import { cancelLocalShipment } from "../backend/repositories/stock";
 import { updateSettings } from "../backend/handlers/update-settings";
+import { invalidateFeeCache } from "../backend/services/delivery-fees";
 let db: Awaited<ReturnType<typeof testDatabase>>;
 const originalFetch = globalThis.fetch;
 function capture() {
@@ -115,6 +116,56 @@ describe("Durable orders and protected state", () => {
     expect(rows[0].price).toBe(3900);
     expect(rows[0].quantity).toBe(3);
     expect(await sql!`SELECT * FROM mv_notification_outbox`).toHaveLength(1);
+  });
+  it("stores stop-desk orders with the stop-desk fee", async () => {
+    invalidateFeeCache();
+    await db.exec(
+      `UPDATE atlasio_settings SET value='{"5":{"home":700,"stopDesk":400}}' WHERE key='delivery_fees'`
+    );
+    globalThis.fetch = (async () => {
+      throw new Error("carrier offline");
+    }) as typeof fetch;
+    const body = orderInput({ quantity: 1, deliveryType: "stop_desk" }),
+      c = capture();
+    await createOrder(request(body), c.response, body);
+    expect(c.code).toBe(200);
+    const rows =
+      await sql!`SELECT price,delivery_fee,delivery_type FROM atlasio_orders`;
+    expect(rows[0]).toMatchObject({
+      price: 1900,
+      delivery_fee: 400,
+      delivery_type: "stop_desk",
+    });
+    await db.exec(
+      "UPDATE atlasio_settings SET value='{}' WHERE key='delivery_fees'"
+    );
+    invalidateFeeCache();
+  });
+  it("keeps an abandoned draft even when delivery fees cannot load", async () => {
+    invalidateFeeCache();
+    globalThis.fetch = (async () => {
+      throw new Error("carrier offline");
+    }) as typeof fetch;
+    const body = orderInput({ quantity: 1, status: "abandoned" }),
+      c = capture();
+    await createOrder(request(body), c.response, body);
+    expect(c.code).toBe(200);
+    const rows = await sql!`SELECT status,delivery_fee FROM atlasio_orders`;
+    expect(rows[0]).toMatchObject({ status: "abandoned", delivery_fee: 0 });
+  });
+  it("drops empty FAQ and review rows and keeps a valid default bundle", () => {
+    const page = validatePage({
+      ...DEFAULT_PRODUCT,
+      faq: [
+        { question: "Q", answer: "A" },
+        { question: "", answer: "" },
+      ],
+      reviews: [{ name: " ", place: "", text: "" }],
+      defaultBundleQuantity: 9,
+    });
+    expect(page.faq).toEqual([{ question: "Q", answer: "A" }]);
+    expect(page.reviews).toEqual([]);
+    expect(page.defaultBundleQuantity).toBeUndefined();
   });
   it("cannot downgrade a complete order with a delayed draft or create duplicates", async () => {
     const body = orderInput();

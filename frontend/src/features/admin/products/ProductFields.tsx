@@ -231,6 +231,25 @@ export function ProductFields({
           }}
           onChange={v => change("bundles", v)}
         />
+        <label style={{ marginTop: 14 }}>
+          العرض المحدد عند فتح الصفحة
+          <select
+            value={page.defaultBundleQuantity ?? ""}
+            onChange={e =>
+              change(
+                "defaultBundleQuantity",
+                Number(e.target.value) || undefined
+              )
+            }
+          >
+            <option value="">العرض الأول</option>
+            {(page.bundles || []).map(bundle => (
+              <option key={bundle.quantity} value={bundle.quantity}>
+                {bundle.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="detail-section">
           <h3>إعداد التوصيل</h3>
           <label style={{ marginTop: 14 }}>
@@ -408,6 +427,35 @@ export function ProductFields({
           }}
           onChange={v => change("features", v)}
         />
+      </section>
+      <section className="panel">
+        <Collection
+          title="سؤال شائع"
+          items={page.faq || []}
+          fields={[
+            { key: "question", label: "السؤال" },
+            { key: "answer", label: "الجواب" },
+          ]}
+          template={{ question: "", answer: "" }}
+          onChange={v => change("faq", v)}
+        />
+      </section>
+      <section className="panel">
+        <Collection
+          title="رأي زبون"
+          items={page.reviews || []}
+          fields={[
+            { key: "name", label: "الاسم" },
+            { key: "place", label: "الولاية" },
+            { key: "text", label: "الرأي" },
+          ]}
+          template={{ name: "", place: "", text: "" }}
+          onChange={v => change("reviews", v)}
+        />
+        <p className="field-help">
+          أضف آراء زبائن حقيقية فقط. يظهر القسم في الصفحة عند إضافة رأي واحد على
+          الأقل.
+        </p>
       </section>
       <section className="panel">
         <label>

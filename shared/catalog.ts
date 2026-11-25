@@ -18,6 +18,18 @@ export type ProductBundle = {
   label: string;
 };
 
+export type ProductFaq = {
+  question: string;
+  answer: string;
+};
+
+/** A real customer review entered by the shop owner. Never ship invented reviews. */
+export type ProductReview = {
+  name: string;
+  place: string;
+  text: string;
+};
+
 export type ProductLandingConfig = {
   slug: string;
   name: string;
@@ -28,6 +40,8 @@ export type ProductLandingConfig = {
   price: number;
   compareAtPrice?: number;
   bundles?: ProductBundle[];
+  /** Bundle selected when the page opens; falls back to the first bundle. */
+  defaultBundleQuantity?: number;
   freeShippingQuantity?: number;
   sections?: {
     features?: boolean;
@@ -43,6 +57,8 @@ export type ProductLandingConfig = {
   resultEyebrow: string;
   resultTitle: string;
   resultDescription: string;
+  faq?: ProductFaq[];
+  reviews?: ProductReview[];
   gift?: {
     enabled: boolean;
     title: string;
@@ -66,21 +82,28 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
     name: "مجموعة بذور الزهور",
     shortName: "بذور الزهور",
     headline: "أطلق الألوان في حديقتك مع 4 أنواع من بذور الزهور",
-    subheadline: "زينيا وكوزموس وروز هندي ومارغريت في مجموعة واحدة",
+    subheadline: "زينيا وكوزموس وروز إندي ومارغريت في كيس واحد",
     description:
-      "كل مجموعة تضم أربعة أنواع من بذور الزهور الظاهرة في الصورة: زينيا، كوزموس، روز هندي ومارغريت. اختر طلباً واحداً أو باقة من طلبين أو ثلاثة طلبات؛ التوصيل مجاني عند اختيار باقة 3 طلبات. تختلف نتائج الإنبات والإزهار حسب جودة البذور والموسم وظروف الزراعة والعناية.",
+      "كل كيس يضم أربعة أنواع من بذور الزهور: زينيا، كوزموس، روز إندي ومارغريت. ازرعها في الحديقة أو في الأصص واجمع ألواناً وأشكالاً مختلفة في مكان واحد. التوصيل مجاني عند اختيار 3 أكياس.",
     price: 1900,
     freeShippingQuantity: 3,
+    defaultBundleQuantity: 2,
+    sections: {
+      features: true,
+      results: false,
+      trust: true,
+      description: true,
+    },
     bundles: [
-      { quantity: 1, price: 1900, label: "طلب واحد" },
-      { quantity: 2, price: 2900, label: "طلبان" },
-      { quantity: 3, price: 3900, label: "3 طلبات — توصيل مجاني" },
+      { quantity: 1, price: 1900, label: "كيس واحد" },
+      { quantity: 2, price: 2900, label: "كيسان" },
+      { quantity: 3, price: 3900, label: "3 أكياس" },
     ],
     currency: "دج",
     images: [
       {
         src: "/images/flower-seed-mix.webp",
-        alt: "مجموعة بذور زهور بأربعة أنواع: زينيا وكوزموس وروز هندي ومارغريت، بسعر 1900 دج",
+        alt: "مجموعة بذور زهور بأربعة أنواع: زينيا وكوزموس وروز إندي ومارغريت، بسعر 1900 دج",
         label: "مجموعة بذور الزهور",
       },
     ],
@@ -89,40 +112,71 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
         name: "زينيا",
         emoji: "🌺",
         accent: "bg-pink-100 text-pink-700",
-        details: "نوع من بذور الزهور",
+        details: "أزهار كبيرة بألوان زاهية، تحب الشمس وتزهر طوال الصيف",
         area: "ضمن المجموعة",
       },
       {
         name: "كوزموس",
         emoji: "🌸",
         accent: "bg-fuchsia-100 text-fuchsia-700",
-        details: "نوع من بذور الزهور",
+        details: "أزهار خفيفة متمايلة، سهلة الزراعة وتتحمل قلة الماء",
         area: "ضمن المجموعة",
       },
       {
-        name: "روز هندي",
+        name: "روز إندي",
         emoji: "🌼",
         accent: "bg-orange-100 text-orange-700",
-        details: "نوع من بذور الزهور",
+        details: "أزهار برتقالية وصفراء كثيفة، قوية ومناسبة للمبتدئين",
         area: "ضمن المجموعة",
       },
       {
         name: "مارغريت",
         emoji: "🌼",
         accent: "bg-yellow-100 text-yellow-700",
-        details: "نوع من بذور الزهور",
+        details: "بتلات بيضاء وقلب أصفر، مظهر كلاسيكي للحديقة والأصص",
         area: "ضمن المجموعة",
       },
     ],
     trustBadges: [
-      "4 أنواع من الزهور",
-      "ابدأ الزراعة اليوم",
       "الدفع عند الاستلام",
+      "نتصل بك لتأكيد الطلب",
+      "توصيل للمنزل أو مكتب الشحن",
     ],
     resultEyebrow: "مجموعة من أربعة أنواع",
     resultTitle: "أضف ألواناً متنوعة إلى حديقتك",
     resultDescription:
-      "تضم المجموعة بذور زينيا وكوزموس وروز هندي ومارغريت. تختلف نتائج الإنبات والإزهار بحسب الموسم وجودة البذور وظروف الزراعة والعناية، ولا يمكن ضمان إنبات كل بذرة.",
+      "زينيا وكوزموس وروز إندي ومارغريت: ألوان وأشكال وأطوال مختلفة تملأ أحواض الحديقة والأصص والشرفات.",
+    faq: [
+      {
+        question: "متى أزرع البذور؟",
+        answer:
+          "أفضل وقت هو الربيع وبداية الصيف بعد انتهاء البرد، في مكان مشمس. يمكن الزراعة في الأصص أو مباشرة في الأرض.",
+      },
+      {
+        question: "كيف أزرعها؟",
+        answer:
+          "ضع البذور على عمق سنتيمتر تقريباً في تربة خفيفة، واسقها بانتظام دون إغراق حتى تنبت، ثم اتركها في الشمس.",
+      },
+      {
+        question: "هل تنبت كل البذور؟",
+        answer:
+          "تختلف نسبة الإنبات والإزهار حسب الموسم وجودة التربة والسقي والعناية، لذلك لا يمكن ضمان إنبات كل بذرة.",
+      },
+      {
+        question: "كيف يتم الدفع؟",
+        answer: "تدفع نقداً عند استلام الطلب. لا يوجد أي دفع مسبق.",
+      },
+      {
+        question: "متى يصلني الطلب؟",
+        answer:
+          "نتصل بك لتأكيد الطلب، ثم نرسله إلى منزلك أو إلى مكتب شركة الشحن في ولايتك. تختلف مدة التوصيل حسب الولاية.",
+      },
+      {
+        question: "كم سعر التوصيل؟",
+        answer:
+          "يظهر سعر التوصيل لولايتك في الاستمارة قبل إرسال الطلب، والتوصيل مجاني عند اختيار 3 أكياس.",
+      },
+    ],
     tracking: {
       contentId: "maisonverre-flower-seed-mix",
       campaignName: "مجموعة بذور الزهور - 4 أنواع",
@@ -141,3 +195,12 @@ export function getProductConfig(
 export function getProductSlugs(): string[] {
   return Object.keys(PRODUCT_CONFIGS);
 }
+
+/** Smaller copies of bundled images, used for responsive `srcset`. */
+export const IMAGE_VARIANTS: Record<string, string> = {
+  "/images/flower-seed-mix.webp":
+    "/images/flower-seed-mix-480.webp 480w, /images/flower-seed-mix-800.webp 800w, /images/flower-seed-mix-1080.webp 1080w, /images/flower-seed-mix.webp 1254w",
+};
+
+export const IMAGE_SIZES =
+  "(min-width: 960px) 480px, (min-width: 600px) 560px, 100vw";

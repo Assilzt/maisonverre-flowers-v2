@@ -85,6 +85,9 @@ pnpm audit --prod --audit-level high
 - Sync مستقل عن فتح لوحة الإدارة، مع سجل الحالة والخطأ وآخر نجاح. يحتاج Scheduler فعليًا.
 - Stock push يحتفظ بعقد الطلب الأصلي. نتيجة إنشاء شحنة غير مؤكدة تُعزل للمطابقة بدل تكرار الإنشاء آليًا.
 - SSR/Prerender يعرضان المنتج والاستمارة قبل JavaScript. Dashboard وPDF tools تُحمّل عند الحاجة، مع CSS منفصل وImage preload.
+- صفحة المنتج المرسومة على الخادم تُخزَّن في Vercel CDN لمدة 24 ساعة (مع stale-while-revalidate). النشر يمسح Cache tag الخاص بالمنتج، وحفظ الإعدادات يمسح `storefront`. عند تعطل Database تبقى صفحة الزهور متاحة من الإعداد المدمج.
+- رسوم التوصيل و Pixel ID تُدمج في HTML (`#storefront-config`) فلا ينتظر الزائر طلبات API قبل الطلب؛ المتصفح يحدّثها في الخلفية ويعيد المحاولة عند الفشل. عند تعطل EcoTrack تُستعمل آخر رسوم معروفة.
+- الصورة الرئيسية بأحجام 480/800/1080 عبر `srcset`، والخط IBM Plex Sans Arabic مستضاف ذاتيًا (Arabic + Latin فقط).
 
 لا يوجد ضمان Zero loss عند تعطل Database بالكامل، أو Exactly once عند انقطاع الشبكة بعد قبول Telegram للرسالة. لا يتضمن الفحص المحلي اعتمادًا لحساب EcoTrack الحقيقي أو قياس PageSpeed على Vercel؛ هذه خطوات Staging.
 

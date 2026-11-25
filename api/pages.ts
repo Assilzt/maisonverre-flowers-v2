@@ -7,6 +7,7 @@ import {
 } from "../backend/repositories/index.js";
 import { sql } from "../backend/repositories/connection.js";
 import { publishedPage, validatePage } from "../backend/services/pages.js";
+import { pageCacheTag, purgeCache } from "../backend/services/cache-tags.js";
 import { DEFAULT_PRODUCT } from "../shared/catalog.js";
 
 const defaultEntry = () => ({
@@ -116,6 +117,7 @@ export default async function pages(request: Request, response: Response) {
         });
         return;
       }
+      await purgeCache(pageCacheTag(slug));
     } else {
       response.status(400).json({ error: "Unknown page action" });
       return;

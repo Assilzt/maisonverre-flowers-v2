@@ -29,3 +29,28 @@ it("escapes embedded configuration without altering its parsed values", async ()
   expect(JSON.parse(config!).name).toBe(page.name);
   expect(JSON.parse(config!).images[0].src).toBe(page.images[0].src);
 });
+it("embeds checkout config and points the preload at the page image", async () => {
+  const withPreload = template.replace(
+    "<title>",
+    '<link rel="preload" as="image" href="/images/flower-seed-mix.webp" imagesrcset="/images/flower-seed-mix-480.webp 480w" imagesizes="100vw" /><title>'
+  );
+  const html = await renderPage(
+    {
+      ...DEFAULT_PRODUCT,
+      images: [
+        { ...DEFAULT_PRODUCT.images[0], src: "https://cdn.test/p.webp" },
+      ],
+    },
+    withPreload,
+    { pixelId: "123456789", fees: [{ wilaya_id: 5, tarif: 700 }] }
+  );
+  expect(html).toContain('href="https://cdn.test/p.webp"');
+  expect(html).not.toContain("imagesrcset");
+  const config = html.match(
+    /<script type="application\/json" id="storefront-config">([\s\S]*?)<\/script>/
+  )?.[1];
+  expect(JSON.parse(config!)).toMatchObject({ pixelId: "123456789" });
+  const flower = await renderPage(DEFAULT_PRODUCT, withPreload);
+  expect(flower).toContain("flower-seed-mix-1080.webp 1080w");
+  expect(flower).toContain("flower-seed-mix-480.webp 480w");
+});

@@ -1,56 +1,61 @@
 import type { ProductLandingConfig } from "@shared/catalog";
-import { ProductImage } from "./ProductImage";
+
+/** Content sections shown below the order form, in the editor's order. */
 export function ProductSections({
   product,
 }: {
   product: ProductLandingConfig;
 }) {
+  const order = (
+    product.sectionOrder || ["image", "features", "results", "trust"]
+  ).filter(section => section === "features" || section === "results");
   return (
     <>
-      {(product.sectionOrder || ["image", "features", "results", "trust"]).map(
-        section => {
-          if (section === "image")
-            return (
-              <div
-                key={section}
-                className="order-1 md:order-none flex justify-center items-start sticky top-8 flower-image-column"
-              >
-                <ProductImage images={product.images} />
-              </div>
-            );
-          if (section === "features" && product.sections?.features)
-            return (
-              <section key={section} className="flower-features-grid" dir="rtl">
+      {order.map(section => {
+        if (
+          section === "features" &&
+          product.sections?.features &&
+          product.features.length
+        )
+          return (
+            <section
+              key={section}
+              className="mv-features"
+              aria-labelledby="features-title"
+            >
+              <h2 id="features-title">ماذا ستحصل؟</h2>
+              <ul>
                 {product.features.map((feature, i) => (
-                  <article key={i} className="flower-feature-item">
-                    <span>{feature.emoji}</span>
-                    <strong>{feature.name}</strong>
-                    <p>{feature.details}</p>
-                  </article>
+                  <li key={i}>
+                    <span className="mv-feature-icon" aria-hidden="true">
+                      {feature.emoji}
+                    </span>
+                    <div>
+                      <strong>{feature.name}</strong>
+                      {feature.details && <p>{feature.details}</p>}
+                    </div>
+                  </li>
                 ))}
-              </section>
-            );
-          if (section === "results" && product.sections?.results)
-            return (
-              <section key={section} dir="rtl">
-                <p>{product.resultEyebrow}</p>
-                <h2 className="text-xl font-bold">{product.resultTitle}</h2>
-                <p>{product.resultDescription}</p>
-              </section>
-            );
-          if (section === "trust" && product.sections?.trust !== false)
-            return (
-              <div key={section} className="flower-features-grid" dir="rtl">
-                {product.trustBadges.map((badge, i) => (
-                  <div className="flower-feature-item" key={i}>
-                    <span aria-hidden="true">{["🌼", "🌱", "📦"][i % 3]}</span>
-                    <strong>{badge}</strong>
-                  </div>
-                ))}
-              </div>
-            );
-          return null;
-        }
+              </ul>
+            </section>
+          );
+        if (section === "results" && product.sections?.results)
+          return (
+            <section key={section} className="mv-results">
+              {product.resultEyebrow && (
+                <p className="mv-eyebrow">{product.resultEyebrow}</p>
+              )}
+              <h2>{product.resultTitle}</h2>
+              <p>{product.resultDescription}</p>
+            </section>
+          );
+        return null;
+      })}
+      {product.sections?.description !== false && product.description && (
+        <section className="mv-about" aria-labelledby="about-title">
+          <h2 id="about-title">عن المنتج</h2>
+          <p>{product.description}</p>
+        </section>
       )}
     </>
   );

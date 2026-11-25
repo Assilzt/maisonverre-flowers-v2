@@ -42,16 +42,26 @@ export async function createOrder(
       .trim()
       .slice(0, 160);
   const free = quantity === page.freeShippingQuantity;
+  const deliveryType =
+    body.deliveryType === "stop_desk" ? "stop_desk" : ("home" as const);
   let fee = 0;
   if (!free && wilaya) {
     const code = Number(wilaya.match(/^\s*(\d{1,2})/)?.[1]);
-    const fees = await deliveryFees(await loadEcoSettings());
-    const selected = fees.find(f => f.wilaya_id === code);
-    if (!selected) {
+    let fees: Awaited<ReturnType<typeof deliveryFees>> | null = null;
+    try {
+      fees = await deliveryFees(await loadEcoSettings());
+    } catch (error) {
+      // A draft is only a call-back lead: never lose it because fees are down.
+      if (complete) throw error;
+    }
+    const selected = fees?.find(f => f.wilaya_id === code);
+    if (fees && !selected) {
       response.status(400).json({ error: "التوصيل غير متاح لهذه الولاية" });
       return;
     }
-    fee = selected.tarif;
+    if (selected)
+      fee =
+        deliveryType === "stop_desk" ? selected.tarif_stopdesk : selected.tarif;
   }
   const status = complete ? "complete" : "abandoned";
   const campaign = String(body.campaign || page.tracking.campaignName).slice(
@@ -69,12 +79,13 @@ export async function createOrder(
     tracking: page.tracking,
     bundle: page.bundles?.find(b => b.quantity === quantity),
     deliveryFee: fee,
+    deliveryType,
   });
   // One SQL statement commits the order and durable notification intent together.
   const rows = await sql!`WITH saved AS (
   INSERT INTO atlasio_orders(lead_id,status,campaign,price,quantity,delivery_fee,delivery_type,phone,full_name,wilaya,commune,source_url,gift_booklet,product_slug,order_snapshot,lead_token_hash)
-  VALUES(${leadId},${status},${campaign},${price},${quantity},${fee},'home',${phone},${name || null},${wilaya || null},${commune || null},${source || null},FALSE,${page.slug},${snapshot}::jsonb,${hash})
-  ON CONFLICT(lead_id) DO UPDATE SET status=EXCLUDED.status,campaign=EXCLUDED.campaign,price=EXCLUDED.price,quantity=EXCLUDED.quantity,delivery_fee=EXCLUDED.delivery_fee,phone=EXCLUDED.phone,full_name=EXCLUDED.full_name,wilaya=EXCLUDED.wilaya,commune=EXCLUDED.commune,source_url=EXCLUDED.source_url,order_snapshot=EXCLUDED.order_snapshot,updated_at=NOW()
+  VALUES(${leadId},${status},${campaign},${price},${quantity},${fee},${deliveryType},${phone},${name || null},${wilaya || null},${commune || null},${source || null},FALSE,${page.slug},${snapshot}::jsonb,${hash})
+  ON CONFLICT(lead_id) DO UPDATE SET status=EXCLUDED.status,campaign=EXCLUDED.campaign,price=EXCLUDED.price,quantity=EXCLUDED.quantity,delivery_fee=EXCLUDED.delivery_fee,delivery_type=EXCLUDED.delivery_type,phone=EXCLUDED.phone,full_name=EXCLUDED.full_name,wilaya=EXCLUDED.wilaya,commune=EXCLUDED.commune,source_url=EXCLUDED.source_url,order_snapshot=EXCLUDED.order_snapshot,updated_at=NOW()
   WHERE atlasio_orders.lead_token_hash=EXCLUDED.lead_token_hash AND atlasio_orders.status IN ('abandoned','complete') AND NOT(atlasio_orders.status='complete' AND EXCLUDED.status='abandoned')
   RETURNING id,lead_id,status
  ), queued AS (

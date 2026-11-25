@@ -64,6 +64,26 @@ export const pageSchema = z.object({
     campaignName: z.string().min(1).max(160),
   }),
   freeShippingQuantity: z.number().int().positive().optional(),
+  defaultBundleQuantity: z.number().int().min(1).max(100).optional(),
+  faq: z
+    .array(
+      z.object({
+        question: z.string().min(1).max(300),
+        answer: z.string().min(1).max(2000),
+      })
+    )
+    .max(20)
+    .optional(),
+  reviews: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(100),
+        place: z.string().max(100),
+        text: z.string().min(1).max(1000),
+      })
+    )
+    .max(30)
+    .optional(),
   sections: z
     .object({
       features: z.boolean().optional(),
@@ -78,11 +98,30 @@ export const pageSchema = z.object({
     .refine(v => new Set(v).size === 4)
     .optional(),
 });
+/** Drops half-filled FAQ and review rows instead of rejecting the save. */
+function withoutEmptyRows(input: unknown) {
+  if (!input || typeof input !== "object") return input;
+  const page = { ...(input as Record<string, unknown>) };
+  const filled = (row: unknown, keys: string[]) =>
+    keys.every(key =>
+      String((row as Record<string, unknown>)?.[key] ?? "").trim()
+    );
+  if (Array.isArray(page.faq))
+    page.faq = page.faq.filter(row => filled(row, ["question", "answer"]));
+  if (Array.isArray(page.reviews))
+    page.reviews = page.reviews.filter(row => filled(row, ["name", "text"]));
+  return page;
+}
 export function validatePage(input: unknown): ProductLandingConfig {
-  const page = pageSchema.parse(input);
+  const page = pageSchema.parse(withoutEmptyRows(input));
   if (new Set(page.bundles.map(b => b.quantity)).size !== page.bundles.length)
     throw new Error("Duplicate bundle quantities");
   page.price = page.bundles[0].price;
+  if (
+    page.defaultBundleQuantity !== undefined &&
+    !page.bundles.some(b => b.quantity === page.defaultBundleQuantity)
+  )
+    delete page.defaultBundleQuantity;
   if (page.slug === DEFAULT_PRODUCT.slug)
     page.tracking = DEFAULT_PRODUCT.tracking;
   return page;

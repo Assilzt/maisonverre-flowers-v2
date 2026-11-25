@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import type { DeliveryFeeRow } from "@shared/storefront";
 import { trackMetaPixelEventOnce } from "../tracking/meta-pixel";
 import {
   type ProductLandingConfig,
@@ -10,6 +11,32 @@ import {
   resetProductSessionLeadId,
 } from "../tracking/product";
 const PHONE_PATTERN = /^(0[567]\d{8}|\+213[567]\d{8})$/;
+
+/** Accepts Arabic-Indic digits and spaces/dashes typed on Arabic keyboards. */
+export const normalizePhone = (value: string) =>
+  value
+    .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06f0-\u06f9]/g, d => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[\s\-().]/g, "");
+
+export type DeliveryType = "home" | "stop_desk";
+export type FeeTable = Record<string, { home: number; stopDesk: number }>;
+export type OrderErrorField = "phone" | "wilaya" | "commune" | "fees" | "save";
+
+export const mapFees = (rows: DeliveryFeeRow[] = []): FeeTable => {
+  const mapped: FeeTable = {};
+  for (const fee of rows) {
+    const code =
+      String(fee.wilaya_id || "").replace(/^0+/, "") ||
+      String(fee.wilaya_id || "");
+    if (code)
+      mapped[code] = {
+        home: Number(fee.tarif || 0),
+        stopDesk: Number(fee.tarif_stopdesk || fee.tarif || 0),
+      };
+  }
+  return mapped;
+};
 
 const validatePhone = (value: string): string => {
   const trimmedValue = value.trim();
@@ -48,7 +75,7 @@ const saveOrder = async (payload: {
   wilaya?: string;
   commune?: string;
   deliveryFee?: number;
-  deliveryType?: "home" | "stop_desk";
+  deliveryType?: DeliveryType;
   giftBooklet?: boolean;
   quantity?: number;
   draftSync?: boolean;
@@ -89,28 +116,58 @@ const fireFacebookEventOnce = (
   );
 };
 
-export function useCheckout(product: ProductLandingConfig) {
+export type SubmittedOrder = {
+  bundleLabel: string;
+  quantity: number;
+  price: number;
+  deliveryFee: number;
+  deliveryType: DeliveryType;
+  wilaya: string;
+  commune: string;
+};
+
+const defaultBundleQuantity = (product: ProductLandingConfig) =>
+  product.bundles?.find(b => b.quantity === product.defaultBundleQuantity)
+    ?.quantity ??
+  product.bundles?.[0]?.quantity ??
+  1;
+
+export function useCheckout(
+  product: ProductLandingConfig,
+  initialFees?: DeliveryFeeRow[]
+) {
   const [fullName, setFullName] = useState("");
   const [wilaya, setWilaya] = useState("");
   const [commune, setCommune] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhoneValue] = useState("");
+  const setPhone = (value: string) => setPhoneValue(normalizePhone(value));
   const [communes, setCommunes] = useState<
     Array<{ name: string; hasStopDesk: boolean }>
   >([]);
-  const [deliveryFees, setDeliveryFees] = useState<
-    Record<string, { home: number; stopDesk: number }>
-  >({});
+  const [communesStatus, setCommunesStatus] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
+  const [communesAttempt, setCommunesAttempt] = useState(0);
+  const [deliveryFees, setDeliveryFees] = useState<FeeTable>(() =>
+    mapFees(initialFees)
+  );
   const [deliveryFeesStatus, setDeliveryFeesStatus] = useState<
     "loading" | "ready" | "error"
-  >("loading");
-  const deliveryType = "home" as const;
+  >(initialFees?.length ? "ready" : "loading");
+  const [feesAttempt, setFeesAttempt] = useState(0);
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("home");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [selectedBundleQuantity, setSelectedBundleQuantity] = useState(1);
+  const [lastOrder, setLastOrder] = useState<SubmittedOrder | null>(null);
+  const [formError, setFormError] = useState<{
+    field: OrderErrorField;
+    message: string;
+  } | null>(null);
+  const [selectedBundleQuantity, setSelectedBundleQuantity] = useState(() =>
+    defaultBundleQuantity(product)
+  );
   const isFlowerLanding = true;
   const phoneInputRef = useRef<HTMLInputElement | null>(null);
-  const hasAutoFocusedPhoneRef = useRef(false);
-  const userInteractedRef = useRef(false);
   const facebookLeadSentRef = useRef(false);
   const viewContentSentRef = useRef(false);
   const activeDraftLeadIdRef = useRef<string | null>(null);
@@ -145,7 +202,19 @@ export function useCheckout(product: ProductLandingConfig) {
     Object.prototype.hasOwnProperty.call(deliveryFees, selectedWilayaCode);
   const isFreeShipping =
     selectedBundle?.quantity === product.freeShippingQuantity;
-  const deliveryFee = isFreeShipping ? 0 : selectedFee.home;
+  const selectedCommune = communes.find(item => item.name === commune);
+  const stopDeskAvailable = Boolean(selectedCommune?.hasStopDesk);
+  const effectiveDeliveryType: DeliveryType =
+    deliveryType === "stop_desk" && stopDeskAvailable ? "stop_desk" : "home";
+  const deliveryFee = isFreeShipping
+    ? 0
+    : effectiveDeliveryType === "stop_desk"
+      ? selectedFee.stopDesk
+      : selectedFee.home;
+  const feeValues = Object.values(deliveryFees);
+  const lowestDeliveryFee = feeValues.length
+    ? Math.min(...feeValues.map(fee => Math.min(fee.home, fee.stopDesk)))
+    : null;
 
   const getActiveDraftLeadId = () => {
     if (!activeDraftLeadIdRef.current) {
@@ -179,43 +248,51 @@ export function useCheckout(product: ProductLandingConfig) {
   };
 
   useEffect(() => {
+    // Embedded fees show at once; this refreshes them, and retries on failure.
+    let cancelled = false,
+      retry: number | undefined;
     void fetch("/api/orders?resource=fees")
       .then(response =>
         response.ok ? response.json() : Promise.reject(new Error("fees"))
       )
-      .then(
-        (data: {
-          fees?: Array<{
-            wilaya_id?: string | number;
-            tarif?: number;
-            tarif_stopdesk?: number;
-          }>;
-        }) => {
-          const mapped: Record<string, { home: number; stopDesk: number }> = {};
-          for (const fee of data.fees || []) {
-            const code =
-              String(fee.wilaya_id || "").replace(/^0+/, "") ||
-              String(fee.wilaya_id || "");
-            if (code)
-              mapped[code] = {
-                home: Number(fee.tarif || 0),
-                stopDesk: Number(fee.tarif_stopdesk || fee.tarif || 0),
-              };
-          }
-          setDeliveryFees(mapped);
-          setDeliveryFeesStatus("ready");
-        }
-      )
-      .catch(() => setDeliveryFeesStatus("error"));
-  }, []);
+      .then((data: { fees?: DeliveryFeeRow[] }) => {
+        if (cancelled) return;
+        const mapped = mapFees(data.fees);
+        if (!Object.keys(mapped).length) throw new Error("fees");
+        setDeliveryFees(mapped);
+        setDeliveryFeesStatus("ready");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDeliveryFeesStatus(status =>
+          status === "ready" ? status : "error"
+        );
+        if (feesAttempt < 3)
+          retry = window.setTimeout(
+            () => setFeesAttempt(n => n + 1),
+            2000 * (feesAttempt + 1)
+          );
+      });
+    return () => {
+      cancelled = true;
+      window.clearTimeout(retry);
+    };
+  }, [feesAttempt]);
+
+  const retryDeliveryFees = () => {
+    setDeliveryFeesStatus(status => (status === "ready" ? status : "loading"));
+    setFeesAttempt(n => n + 1);
+  };
 
   useEffect(() => {
     if (!wilaya) {
       setCommunes([]);
       setCommune("");
+      setCommunesStatus("idle");
       return;
     }
     setCommune("");
+    setCommunesStatus("loading");
     const controller = new AbortController();
     void fetch(
       `/api/orders?resource=communes&wilaya=${encodeURIComponent(wilaya)}`,
@@ -225,78 +302,22 @@ export function useCheckout(product: ProductLandingConfig) {
         response.ok ? response.json() : Promise.reject(new Error("communes"))
       )
       .then(
-        (data: { communes?: Array<{ name: string; hasStopDesk: boolean }> }) =>
-          setCommunes(data.communes || [])
+        (data: {
+          communes?: Array<{ name: string; hasStopDesk: boolean }>;
+        }) => {
+          setCommunes(data.communes || []);
+          setCommunesStatus(data.communes?.length ? "ready" : "error");
+        }
       )
       .catch(() => {
-        if (!controller.signal.aborted) setCommunes([]);
+        if (controller.signal.aborted) return;
+        setCommunes([]);
+        setCommunesStatus("error");
       });
     return () => controller.abort();
-  }, [wilaya]);
+  }, [wilaya, communesAttempt]);
 
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      userInteractedRef.current = true;
-    };
-
-    window.addEventListener("pointerdown", handleUserInteraction, {
-      passive: true,
-    });
-    window.addEventListener("keydown", handleUserInteraction, {
-      passive: true,
-    });
-    window.addEventListener("touchstart", handleUserInteraction, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("pointerdown", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
-      window.removeEventListener("touchstart", handleUserInteraction);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (hasAutoFocusedPhoneRef.current || userInteractedRef.current) return;
-
-    const tryFocusPhone = () => {
-      if (hasAutoFocusedPhoneRef.current || userInteractedRef.current) return;
-      const input = phoneInputRef.current;
-      if (!input) return;
-
-      const form = document.getElementById("lead-form");
-      const formRect = form?.getBoundingClientRect();
-      const isNearViewport =
-        Boolean(formRect) &&
-        formRect!.top < window.innerHeight + 180 &&
-        formRect!.bottom > 0;
-
-      if (!isNearViewport) return;
-      if (
-        document.activeElement &&
-        document.activeElement !== document.body &&
-        document.activeElement !== input
-      )
-        return;
-
-      input.focus({ preventScroll: true });
-      hasAutoFocusedPhoneRef.current = true;
-    };
-
-    const timeoutId = window.setTimeout(
-      tryFocusPhone,
-      5000 + Math.random() * 9000
-    );
-    const handleScroll = () => {
-      if (!hasAutoFocusedPhoneRef.current) tryFocusPhone();
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+  const retryCommunes = () => setCommunesAttempt(n => n + 1);
 
   useEffect(() => {
     if (viewContentSentRef.current) return;
@@ -382,7 +403,7 @@ export function useCheckout(product: ProductLandingConfig) {
       wilaya: wilaya || undefined,
       commune: commune.trim() || undefined,
       deliveryFee,
-      deliveryType,
+      deliveryType: effectiveDeliveryType,
       giftBooklet: false,
       quantity: selectedBundle?.quantity ?? 1,
       draftSync: true,
@@ -411,18 +432,46 @@ export function useCheckout(product: ProductLandingConfig) {
     offerPrice,
     campaignLabel,
     deliveryFee,
-    deliveryType,
+    effectiveDeliveryType,
     selectedBundle,
     submitted,
     isSubmitting,
   ]);
 
+  // Clear a shown error as soon as the visitor fixes that field.
+  useEffect(() => {
+    setFormError(current => {
+      if (!current) return current;
+      if (current.field === "phone" && !validatePhone(phone)) return null;
+      if (current.field === "wilaya" && wilaya) return null;
+      if (current.field === "commune" && commune) return null;
+      if (current.field === "fees" && deliveryFeesStatus === "ready")
+        return null;
+      return current;
+    });
+  }, [phone, wilaya, commune, deliveryFeesStatus]);
+
+  const focusField = (id: string) =>
+    window.setTimeout(() => document.getElementById(id)?.focus(), 0);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     const validationMessage = validatePhone(phone);
-    if (validationMessage || !wilaya || !commune.trim()) {
-      alert(validationMessage || "يرجى إكمال الولاية والبلدية");
+    if (validationMessage) {
+      setFormError({ field: "phone", message: validationMessage });
+      phoneInputRef.current?.focus();
+      return;
+    }
+    if (!wilaya) {
+      setFormError({ field: "wilaya", message: "اختر الولاية" });
+      focusField("wilaya");
+      return;
+    }
+    if (!commune.trim()) {
+      setFormError({ field: "commune", message: "اختر البلدية" });
+      focusField("commune");
       return;
     }
 
@@ -430,23 +479,21 @@ export function useCheckout(product: ProductLandingConfig) {
       !isFreeShipping &&
       (deliveryFeesStatus !== "ready" || !hasDeliveryFee)
     ) {
-      alert(
-        deliveryFeesStatus === "loading"
-          ? "يرجى الانتظار حتى يتم تحميل رسوم التوصيل ثم أعد المحاولة."
-          : "تعذّر تحديد رسوم التوصيل لهذه الولاية. أعد تحميل الصفحة وحاول مرة أخرى."
-      );
+      if (deliveryFeesStatus !== "ready") retryDeliveryFees();
+      setFormError({
+        field: "fees",
+        message:
+          deliveryFeesStatus === "ready"
+            ? "التوصيل غير متاح لهذه الولاية حالياً."
+            : "جارٍ تحميل سعر التوصيل… أعد الضغط بعد لحظة.",
+      });
       return;
     }
 
+    setFormError(null);
     trackInitiateCheckout();
     const trimmedPhone = phone.trim();
     const leadId = getActiveDraftLeadId();
-    fireFacebookEventOnce(
-      product,
-      "Purchase",
-      `purchase:${leadId}`,
-      getProductPurchaseEventData(product, offerPrice)
-    );
     setIsSubmitting(true);
 
     if (draftSyncTimerRef.current !== null) {
@@ -458,6 +505,7 @@ export function useCheckout(product: ProductLandingConfig) {
       await draftSyncPromiseRef.current;
     }
 
+    const quantity = selectedBundle?.quantity ?? 1;
     const orderSaved = await saveOrder({
       leadId,
       status: "complete",
@@ -469,26 +517,45 @@ export function useCheckout(product: ProductLandingConfig) {
       wilaya,
       commune: commune.trim(),
       deliveryFee,
-      deliveryType,
+      deliveryType: effectiveDeliveryType,
       giftBooklet: false,
-      quantity: selectedBundle?.quantity ?? 1,
+      quantity,
     });
 
-    if (orderSaved) {
-      setSubmitted(true);
-      setFullName("");
-      setWilaya("");
-      setCommune("");
-      setPhone("");
-      facebookLeadSentRef.current = false;
-      resetProductSessionLeadId(product);
-      activeDraftLeadIdRef.current = null;
-    } else {
-      alert("تعذر تسجيل الطلب، يرجى المحاولة مرة أخرى.");
+    if (!orderSaved) {
+      setFormError({
+        field: "save",
+        message: "تعذر إرسال الطلب. تحقق من الإنترنت ثم أعد المحاولة.",
+      });
       setIsSubmitting(false);
       return;
     }
 
+    // Only a saved order counts as a conversion.
+    fireFacebookEventOnce(
+      product,
+      "Purchase",
+      `purchase:${leadId}`,
+      getProductPurchaseEventData(product, offerPrice)
+    );
+    setLastOrder({
+      bundleLabel: selectedBundle?.label || product.name,
+      quantity,
+      price: offerPrice,
+      deliveryFee,
+      deliveryType: effectiveDeliveryType,
+      wilaya,
+      commune: commune.trim(),
+    });
+    setSubmitted(true);
+    setFullName("");
+    setWilaya("");
+    setCommune("");
+    setPhoneValue("");
+    setDeliveryType("home");
+    facebookLeadSentRef.current = false;
+    resetProductSessionLeadId(product);
+    activeDraftLeadIdRef.current = null;
     setIsSubmitting(false);
   };
 
@@ -496,6 +563,7 @@ export function useCheckout(product: ProductLandingConfig) {
     resetProductSessionLeadId(product);
     activeDraftLeadIdRef.current = null;
     setSubmitted(false);
+    setLastOrder(null);
   };
   return {
     fullName,
@@ -507,9 +575,19 @@ export function useCheckout(product: ProductLandingConfig) {
     phone,
     setPhone,
     communes,
+    communesStatus,
+    retryCommunes,
     deliveryFeesStatus,
+    retryDeliveryFees,
+    lowestDeliveryFee,
+    deliveryType: effectiveDeliveryType,
+    setDeliveryType,
+    stopDeskAvailable,
     isSubmitting,
     submitted,
+    lastOrder,
+    formError,
+    selectedBundleQuantity: selectedBundle?.quantity ?? selectedBundleQuantity,
     setSelectedBundleQuantity,
     isFlowerLanding,
     phoneInputRef,

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import FlowerLanding from "@/features/storefront/FlowerLanding";
 import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
+import { readEmbeddedStorefront } from "@shared/storefront";
 const Dashboard = lazy(() => import("@/features/admin/Dashboard"));
 const PageEditor = lazy(() => import("@/features/admin/PageEditor"));
 export function embeddedPage(slug: string) {
@@ -29,7 +30,8 @@ export default function App() {
       embeddedPage(slug) ||
         (slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT : null)
     ),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [storefront] = useState(readEmbeddedStorefront);
   useEffect(() => {
     if (isAdmin) return;
     if (!preview && embeddedPage(slug)) return;
@@ -89,7 +91,7 @@ export default function App() {
           معاينة — لا يُحفظ أي طلب ولا تُرسل أحداث Pixel
         </p>
       )}
-      <FlowerLanding key={page.slug} product={page} />
+      <FlowerLanding key={page.slug} product={page} storefront={storefront} />
     </>
   );
 }

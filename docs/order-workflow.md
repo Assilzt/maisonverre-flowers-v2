@@ -2,7 +2,7 @@
 
 ## Checkout compatibility
 
-الحفاظ على منطق الزهور أولوية: Draft capture بعد كتابة الهاتف مع Debounce، Lead عند رقم صالح، InitiateCheckout وPurchase وفق توقيت المصدر الأصلي. Purchase ما زال قبل اكتمال طلب الحفظ حفاظًا على العقد السابق؛ لا تعتبره إثباتًا مستقلًا لنجاح Database. Preview وAdmin لا يرسلان أحداث Pixel.
+الحفاظ على منطق الزهور أولوية: Draft capture بعد كتابة الهاتف مع Debounce، Lead عند رقم صالح، InitiateCheckout وPurchase وفق توقيت المصدر الأصلي. Purchase يُرسل فقط بعد نجاح حفظ الطلب، فلا تُحتسب محاولة فاشلة كتحويل. الطلب يحفظ طريقة التوصيل (`home` أو `stop_desk`) ورسومها المحسوبة على الخادم؛ مكتب الشحن متاح فقط للبلديات التي تملكه. Draft لا يُرفض إذا تعذر تحميل رسوم التوصيل. Preview وAdmin لا يرسلان أحداث Pixel.
 
 Lead ID مع Capability token يحددان نفس Draft. Token يُخزن كـHash في Database. SQL يكتب الطلب وOutbox معًا، يمنع تكرار Lead وتراجع Complete إلى Abandoned، ويحمي الطلب المؤكد أو المشحون من تحديثات المتصفح المتأخرة. الخادم يتحقق من Quantity والعرض المنشور ورسوم التوصيل.
 
