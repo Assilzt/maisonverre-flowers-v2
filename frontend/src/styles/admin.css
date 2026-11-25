@@ -18,57 +18,70 @@
   grid-template-columns: 218px minmax(0, 1fr);
   isolation: isolate;
 }
-.admin-app * {
+/* Panels (such as the order details drawer) rendered outside the admin shell. */
+.admin-surface {
+  --ink: #1d2433;
+  --muted: #5d6779;
+  --line: #e4e7ec;
+  --accent: #1d6a4d;
+  --surface: #fff;
+  color: var(--ink);
+  font:
+    15px/1.6 "IBM Plex Sans Arabic",
+    system-ui,
+    sans-serif;
+}
+:is(.admin-app, .admin-surface) * {
   box-sizing: border-box;
 }
-.admin-app h1,
-.admin-app h2,
-.admin-app h3,
-.admin-app p {
+:is(.admin-app, .admin-surface) h1,
+:is(.admin-app, .admin-surface) h2,
+:is(.admin-app, .admin-surface) h3,
+:is(.admin-app, .admin-surface) p {
   margin: 0;
 }
-.admin-app h1 {
+:is(.admin-app, .admin-surface) h1 {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.6px;
 }
-.admin-app h2 {
+:is(.admin-app, .admin-surface) h2 {
   font-size: 16px;
   font-weight: 700;
 }
-.admin-app h3 {
+:is(.admin-app, .admin-surface) h3 {
   font-size: 14px;
   font-weight: 700;
 }
-.admin-app button,
-.admin-app input,
-.admin-app select,
-.admin-app textarea {
+:is(.admin-app, .admin-surface) button,
+:is(.admin-app, .admin-surface) input,
+:is(.admin-app, .admin-surface) select,
+:is(.admin-app, .admin-surface) textarea {
   font: inherit;
 }
-.admin-app button {
+:is(.admin-app, .admin-surface) button {
   cursor: pointer;
 }
-.admin-app button:disabled {
+:is(.admin-app, .admin-surface) button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
-.admin-app a {
+:is(.admin-app, .admin-surface) a {
   text-decoration: none;
   color: inherit;
 }
-.admin-app svg {
+:is(.admin-app, .admin-surface) svg {
   flex-shrink: 0;
 }
-.admin-app :focus-visible {
+:is(.admin-app, .admin-surface) :focus-visible {
   outline: 3px solid #8bc5ac;
   outline-offset: 3px;
 }
-.admin-app .muted {
+:is(.admin-app, .admin-surface) .muted {
   color: var(--muted);
   font-size: 12px;
 }
-.admin-app .mono {
+:is(.admin-app, .admin-surface) .mono {
   font-family: ui-monospace, SFMono-Regular, monospace;
   letter-spacing: 0.2px;
   font-size: 12px;
@@ -76,17 +89,17 @@
   unicode-bidi: isolate;
   display: inline-block;
 }
-.admin-app .subtle {
+:is(.admin-app, .admin-surface) .subtle {
   font-size: 12px;
   color: var(--muted);
   display: block;
   margin-top: 3px;
 }
-.admin-app .text-link {
+:is(.admin-app, .admin-surface) .text-link {
   color: var(--accent);
   font-weight: 600;
 }
-.admin-app .sr-only {
+:is(.admin-app, .admin-surface) .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -135,12 +148,12 @@
   padding: 0 13px 10px;
   color: #78978a;
 }
-.admin-app nav {
+:is(.admin-app, .admin-surface) nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.admin-app nav a {
+:is(.admin-app, .admin-surface) nav a {
   display: flex;
   align-items: center;
   gap: 11px;
@@ -149,10 +162,10 @@
   font-size: 14px;
   font-weight: 500;
 }
-.admin-app nav a:hover {
+:is(.admin-app, .admin-surface) nav a:hover {
   background: #ffffff0b;
 }
-.admin-app nav a.active {
+:is(.admin-app, .admin-surface) nav a.active {
   background: #ffffff12;
   color: #fff;
   box-shadow: inset -3px 0 #a6d1b7;
@@ -259,7 +272,7 @@
 .mobile-menu {
   display: none !important;
 }
-.admin-app .btn {
+:is(.admin-app, .admin-surface) .btn {
   border: 1px solid #dae3dd;
   border-radius: 7px;
   background: #fff;
@@ -277,29 +290,29 @@
     background 0.15s,
     border-color 0.15s;
 }
-.admin-app .btn:hover {
+:is(.admin-app, .admin-surface) .btn:hover {
   background: #f2f6f3;
   border-color: #becdc2;
 }
-.admin-app .btn.primary {
+:is(.admin-app, .admin-surface) .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
 }
-.admin-app .btn.primary:hover {
+:is(.admin-app, .admin-surface) .btn.primary:hover {
   background: #18573f;
 }
-.admin-app .btn.quiet {
+:is(.admin-app, .admin-surface) .btn.quiet {
   background: transparent;
   border-color: transparent;
   color: var(--muted);
 }
-.admin-app .btn.danger {
+:is(.admin-app, .admin-surface) .btn.danger {
   color: #a44743;
   border-color: #ecd9d5;
   background: #fff;
 }
-.admin-app .btn.small {
+:is(.admin-app, .admin-surface) .btn.small {
   min-height: 30px;
   padding: 4px 9px;
   font-size: 11px;
@@ -315,7 +328,7 @@
   color: #6b7c71;
   border-radius: 7px;
 }
-.admin-app .panel {
+:is(.admin-app, .admin-surface) .panel {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #fff;
@@ -348,7 +361,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.admin-app .notice {
+:is(.admin-app, .admin-surface) .notice {
   border: 1px solid #dbe9e0;
   background: #f0f7f2;
   color: #326147;
@@ -360,40 +373,41 @@
   gap: 10px;
   align-items: start;
 }
-.admin-app .notice.error {
+:is(.admin-app, .admin-surface) .notice.error {
   background: #fdf4f2;
   border-color: #efdad4;
   color: #9b443d;
 }
-.admin-app .notice.warning {
+:is(.admin-app, .admin-surface) .notice.warning {
   background: #fff9ed;
   border-color: #f0e4c7;
   color: #8a6b2e;
 }
-.admin-app .notice > div {
+:is(.admin-app, .admin-surface) .notice > div {
   flex: 1;
 }
-.admin-app .notice .icon-button {
+:is(.admin-app, .admin-surface) .notice .icon-button {
   width: 24px;
   height: 24px;
   background: transparent;
   border: 0;
 }
-.admin-app .form-grid {
+:is(.admin-app, .admin-surface) .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
-.admin-app label {
+:is(.admin-app, .admin-surface) label {
   display: flex;
   flex-direction: column;
   gap: 7px;
   font-size: 13px;
   font-weight: 600;
 }
-.admin-app input:not([type="checkbox"]):not([type="radio"]),
-.admin-app select,
-.admin-app textarea {
+:is(.admin-app, .admin-surface)
+  input:not([type="checkbox"]):not([type="radio"]),
+:is(.admin-app, .admin-surface) select,
+:is(.admin-app, .admin-surface) textarea {
   border: 1px solid #dce4de;
   background: #fff;
   border-radius: 6px;
@@ -405,23 +419,23 @@
   width: 100%;
   min-height: 39px;
 }
-.admin-app input[readonly],
-.admin-app input:disabled {
+:is(.admin-app, .admin-surface) input[readonly],
+:is(.admin-app, .admin-surface) input:disabled {
   background: #f5f7f5;
   color: #87968b;
 }
-.admin-app textarea {
+:is(.admin-app, .admin-surface) textarea {
   min-height: 90px;
   resize: vertical;
 }
-.admin-app input[type="checkbox"],
-.admin-app input[type="radio"] {
+:is(.admin-app, .admin-surface) input[type="checkbox"],
+:is(.admin-app, .admin-surface) input[type="radio"] {
   accent-color: var(--accent);
   width: 15px;
   height: 15px;
   cursor: pointer;
 }
-.admin-app .checkline {
+:is(.admin-app, .admin-surface) .checkline {
   flex-direction: row;
   align-items: center;
   gap: 8px;
@@ -436,7 +450,7 @@
   color: #a44743;
   font-size: 11px;
 }
-.admin-app [aria-invalid="true"] {
+:is(.admin-app, .admin-surface) [aria-invalid="true"] {
   border-color: #bc5c51 !important;
 }
 .field-wide {
@@ -536,7 +550,7 @@
   top: 11px;
   color: #93a097;
 }
-.admin-app .search-field input {
+:is(.admin-app, .admin-surface) .search-field input {
   padding-right: 37px;
   border-color: #e5eae6;
   background: #fbfcfb;
@@ -848,12 +862,12 @@
   gap: 18px 24px;
 }
 .detail-grid dt {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
   margin-bottom: 4px;
 }
 .detail-grid dd {
-  font-size: 13px;
+  font-size: 15px;
   margin: 0;
   overflow-wrap: anywhere;
 }
@@ -892,7 +906,7 @@
   gap: 9px;
   flex-wrap: wrap;
 }
-.admin-app details summary {
+:is(.admin-app, .admin-surface) details summary {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -935,7 +949,7 @@
 .more-actions-menu .danger {
   color: #a44743;
 }
-.admin-app .stats-table {
+:is(.admin-app, .admin-surface) .stats-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
@@ -1094,7 +1108,7 @@
   border-bottom: 1px solid var(--line);
   font-size: 12px;
 }
-.admin-app .alert-dot {
+:is(.admin-app, .admin-surface) .alert-dot {
   width: 7px;
   height: 7px;
   background: #b98e42;
@@ -1212,21 +1226,21 @@
   .editor-aside {
     display: none;
   }
-  .admin-app .as-drawer nav {
+  :is(.admin-app, .admin-surface) .as-drawer nav {
     padding: 20px;
   }
-  .admin-app .as-drawer nav a {
+  :is(.admin-app, .admin-surface) .as-drawer nav a {
     color: #536c5c;
   }
-  .admin-app .as-drawer nav a.active {
+  :is(.admin-app, .admin-surface) .as-drawer nav a.active {
     background: #eff5ef;
     box-shadow: inset -3px 0 #3f7b55;
     color: #25523a;
   }
-  .admin-app .as-drawer .dialog-surface > .btn {
+  :is(.admin-app, .admin-surface) .as-drawer .dialog-surface > .btn {
     margin: 0 20px 10px;
   }
-  .admin-app .as-drawer .dialog-surface:has(> nav) {
+  :is(.admin-app, .admin-surface) .as-drawer .dialog-surface:has(> nav) {
     width: min(310px, 85vw);
   }
   .collection-fields {
@@ -1378,15 +1392,15 @@
   .stat-card strong {
     font-size: 25px;
   }
-  .admin-app .panel {
+  :is(.admin-app, .admin-surface) .panel {
     padding: 18px;
     margin-bottom: 16px;
   }
-  .admin-app .form-grid {
+  :is(.admin-app, .admin-surface) .form-grid {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .admin-app .panel-heading {
+  :is(.admin-app, .admin-surface) .panel-heading {
     gap: 10px;
   }
   .product-grid {
@@ -1458,7 +1472,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .admin-app * {
+  :is(.admin-app, .admin-surface) * {
     animation: none !important;
     transition: none !important;
   }
@@ -1488,13 +1502,13 @@
 .admin-app.login-page {
   grid-template-columns: 1fr;
 }
-.admin-app fieldset {
+:is(.admin-app, .admin-surface) fieldset {
   border: 0;
   padding: 0;
   margin: 0;
   min-width: 0;
 }
-.admin-app .field-wide {
+:is(.admin-app, .admin-surface) .field-wide {
   grid-column: 1/-1;
 }
 

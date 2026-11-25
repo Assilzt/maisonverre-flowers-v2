@@ -4,7 +4,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { beforeEach, afterEach, it, expect, vi } from "vitest";
 import { DEFAULT_PRODUCT } from "../shared/catalog";
 import { AdminShell } from "../frontend/src/features/admin/ui/AdminShell";
-import { OrdersWorkspace } from "../frontend/src/features/admin/views/OrdersWorkspace";
+import { OrdersScreen } from "../frontend/src/features/admin/views/OrdersScreen";
+import { orderStatusView } from "../frontend/src/features/admin/views/OrderRow";
 import { useProductEditor } from "../frontend/src/features/admin/products/useProductEditor";
 import { initialOrderSection } from "../frontend/src/features/admin/model/sections";
 import { canConfirmOrder } from "../frontend/src/features/admin/ui/order-ui";
@@ -58,28 +59,123 @@ it("mounts the mobile navigation only while open and restores focus on Escape", 
   expect(document.activeElement).toBe(trigger);
   expect(document.body.style.overflow).toBe("");
 });
-it("keeps filters and bulk actions hidden until requested", async () => {
-  const c = {
-    visibleOrders: [],
-    orders: [],
-    ordersPage: 1,
-    totalRows: 0,
-    selectedIds: [],
-    query: "",
+const order = (extra: Partial<Order> = {}) =>
+  ({
+    id: 7,
+    lead_id: "AT-7",
+    status: "complete",
+    phone: "0551234567",
+    full_name: "Amine Benali",
+    wilaya: "05 - باتنة",
+    commune: "Batna",
+    delivery_type: "stop_desk",
+    price: 2900,
+    delivery_fee: 400,
+    quantity: 2,
+    campaign: "Flowers",
+    order_snapshot: { name: "مجموعة بذور الزهور" },
+    ecotrack_tracking: null,
+    ecotrack_status: null,
+    created_at: new Date().toISOString(),
+    ...extra,
+  }) as Order;
+const screen = (extra: Record<string, unknown> = {}) =>
+  ({
+    counts: { complete: 1, confirmed: 2, trashed: 4 },
+    confirmationQueueCount: 1,
+    shippingQueueCount: 2,
+    trackingQueueCount: 0,
+    followUpCount: 0,
     section: "orders",
-    status: "all",
+    sectionTitle: "الواردة",
+    sectionDescription: "",
+    visibleOrders: [order()],
+    orders: [order()],
+    selectedIds: [],
+    totalRows: 1,
+    ordersPage: 1,
+    query: "",
     datePreset: "all",
     shippingStage: "",
     availableStages: [],
+    loading: false,
+    error: "",
+    allVisibleSelected: false,
+    contactBusy: false,
     setQuery: vi.fn(),
     goToSection: vi.fn(),
     setShippingStage: vi.fn(),
-  } as unknown as DashboardContext;
-  await act(async () => root.render(<OrdersWorkspace context={c} />));
-  expect(host.querySelector("#order-filters")).toBeNull();
-  expect(host.querySelector(".bulk-toolbar")).toBeNull();
-  await act(async () => button("الفلاتر").click());
-  expect(host.querySelector("#order-filters")).not.toBeNull();
+    openOrder: vi.fn(),
+    toggleSelected: vi.fn(),
+    recordContact: vi.fn(),
+    runAction: vi.fn(),
+    startWork: vi.fn(),
+    ...extra,
+  }) as unknown as DashboardContext;
+it("shows queue tabs with counts and opens a queue from its tab", async () => {
+  const c = screen();
+  await act(async () => root.render(<OrdersScreen context={c} />));
+  const tabs = Array.from(host.querySelectorAll("[role=tab]")).map(t =>
+    t.textContent?.trim()
+  );
+  expect(tabs).toEqual([
+    "الكل3",
+    "تحتاج تأكيد1",
+    "جاهزة للشحن2",
+    "قيد التوصيل0",
+    "تحتاج متابعة0",
+  ]);
+  const tab = Array.from(
+    host.querySelectorAll<HTMLButtonElement>("[role=tab]")
+  )[1];
+  await act(async () => tab.click());
+  expect(c.goToSection).toHaveBeenCalledWith("confirmation");
+});
+it("shows bulk actions only while orders are selected", async () => {
+  await act(async () => root.render(<OrdersScreen context={screen()} />));
+  expect(host.querySelector(".ops-bulk")).toBeNull();
+  expect(host.querySelector('[aria-label="البحث في الطلبات"]')).not.toBeNull();
+  await act(async () =>
+    root.render(<OrdersScreen context={screen({ selectedIds: [7] })} />)
+  );
+  expect(host.querySelector(".ops-bulk")?.textContent).toContain("1 محدد");
+  expect(host.querySelector('[aria-label="البحث في الطلبات"]')).toBeNull();
+});
+it("shows the useful order facts in one row and keeps actions from opening it", async () => {
+  const c = screen();
+  await act(async () => root.render(<OrdersScreen context={c} />));
+  const row = host.querySelector(".ops-row")!;
+  expect(row.textContent).toContain("Amine Benali");
+  expect(row.textContent).toContain("باتنة");
+  expect(row.textContent).toContain("مكتب الشحن");
+  expect(row.textContent).toContain("3,300");
+  await act(async () => button("تأكيد").click());
+  expect(c.recordContact).toHaveBeenCalledWith(c.visibleOrders[0], "confirmed");
+  expect(c.openOrder).not.toHaveBeenCalled();
+  await act(async () => (row as HTMLElement).click());
+  expect(c.openOrder).toHaveBeenCalledWith(c.visibleOrders[0]);
+});
+it("disables confirming an order whose phone is incomplete", async () => {
+  const draft = order({ status: "abandoned", phone: "055" });
+  await act(async () =>
+    root.render(
+      <OrdersScreen
+        context={screen({ visibleOrders: [draft], orders: [draft] })}
+      />
+    )
+  );
+  expect(button("تأكيد").disabled).toBe(true);
+});
+it("labels carrier states in Arabic with one color per state", () => {
+  expect(orderStatusView(order())).toEqual({
+    label: "جديد — يحتاج تأكيد",
+    tone: "blue",
+  });
+  expect(
+    orderStatusView(
+      order({ ecotrack_tracking: "T1", ecotrack_status: "livre_non_encaisse" })
+    )
+  ).toEqual({ label: "سُلّمت، لم تُحصّل", tone: "green" });
 });
 it("allows confirmation only for unshipped eligible orders with a valid complete phone", () => {
   const order = {
