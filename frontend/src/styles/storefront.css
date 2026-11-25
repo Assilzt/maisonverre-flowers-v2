@@ -1066,3 +1066,87 @@
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
 }
+
+/* خطوات الزراعة: tap to open each step, like the FAQ */
+.mv-landing {
+  overflow-x: clip;
+}
+.mv-guide-steps {
+  margin-top: 12px;
+}
+.mv-guide-steps details {
+  border-bottom: 0.5px solid var(--sep);
+}
+.mv-guide-steps details:last-child {
+  border-bottom: 0;
+}
+.mv-guide-steps summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.mv-guide-steps summary::-webkit-details-marker {
+  display: none;
+}
+.mv-guide-steps summary strong {
+  flex: 1;
+  font-size: 1.05rem;
+}
+.mv-guide-steps summary::after {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: 4px;
+  border-bottom: 2px solid var(--label-3);
+  border-left: 2px solid var(--label-3);
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+}
+.mv-guide-steps details[open] summary::after {
+  transform: rotate(135deg);
+}
+.mv-guide-steps .mv-guide-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 1.5rem;
+}
+.mv-guide-steps details:nth-child(3) .mv-guide-icon {
+  background: #eaf3fd;
+}
+.mv-guide-steps details:nth-child(4) .mv-guide-icon {
+  background: #fff6e0;
+}
+.mv-guide-steps details p {
+  margin: 0 0 14px;
+  padding-inline-start: 60px;
+  color: var(--label-3);
+  font-size: 0.98rem;
+  animation: mv-fade 0.25s ease;
+}
+@keyframes mv-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.mv-guide-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin-top: 14px;
+  border-radius: 14px;
+  background: var(--tint-soft);
+  color: var(--tint);
+  font-weight: 800;
+  text-decoration: none;
+}
+.mv-guide-cta:active {
+  transform: scale(0.98);
+}

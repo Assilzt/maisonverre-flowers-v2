@@ -111,6 +111,8 @@ export default function FlowerLanding({
   const heroCtaRef = useRef<HTMLAnchorElement | null>(null);
   const [orderVisible, setOrderVisible] = useState(true);
   const [heroCtaVisible, setHeroCtaVisible] = useState(true);
+  const finalRef = useRef<HTMLElement | null>(null);
+  const [finalVisible, setFinalVisible] = useState(false);
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
     const watch = (
@@ -128,10 +130,11 @@ export default function FlowerLanding({
     const observers = [
       watch(orderRef.current, setOrderVisible),
       watch(heroCtaRef.current, setHeroCtaVisible),
+      watch(finalRef.current, setFinalVisible),
     ];
     return () => observers.forEach(observer => observer?.disconnect());
   }, []);
-  const stickyHidden = orderVisible || heroCtaVisible;
+  const stickyHidden = orderVisible || heroCtaVisible || finalVisible;
 
   // Once the phone is complete, guide to the name; after a wilaya, to the commune.
   const nameRef = useRef<HTMLInputElement | null>(null);
@@ -620,7 +623,7 @@ export default function FlowerLanding({
 
         {guide && guide.length > 0 && (
           <section className="mv-guide" aria-labelledby="guide-title">
-            <h2 id="guide-title">من البذرة إلى الزهرة</h2>
+            <h2 id="guide-title">خطوات الزراعة</h2>
             <p className="mv-guide-sub">
               خطوات بسيطة، حتى لو كانت أول مرة تزرع
             </p>
@@ -644,21 +647,24 @@ export default function FlowerLanding({
                   ))}
               </div>
             )}
-            <ol>
+            <div className="mv-guide-steps">
               {guide.map((item, i) => (
-                <li key={i}>
-                  <span className="mv-guide-icon" aria-hidden="true">
-                    {GUIDE_ICONS[i % GUIDE_ICONS.length]}
-                  </span>
-                  <div>
+                <details key={i} open={i === 0}>
+                  <summary>
+                    <span className="mv-guide-icon" aria-hidden="true">
+                      {GUIDE_ICONS[i % GUIDE_ICONS.length]}
+                    </span>
                     <strong>
                       <span className="num">{i + 1}.</span> {item.title}
                     </strong>
-                    {item.text && <p>{item.text}</p>}
-                  </div>
-                </li>
+                  </summary>
+                  {item.text && <p>{item.text}</p>}
+                </details>
               ))}
-            </ol>
+            </div>
+            <a className="mv-guide-cta" href="#order">
+              جاهز للزراعة؟ اطلب بذورك الآن
+            </a>
           </section>
         )}
 
@@ -691,7 +697,7 @@ export default function FlowerLanding({
           </section>
         )}
 
-        <section className="mv-final">
+        <section className="mv-final" ref={finalRef}>
           <p>
             {product.name} — ابتداءً من {money(lowestPrice)} {product.currency}
           </p>
