@@ -14,6 +14,8 @@ import { updateOrders } from "../backend/handlers/update";
 import { issueSession } from "../backend/auth/session";
 import { allowedActions, orderStage, canTrash } from "../shared/order-flow";
 import media from "../api/media";
+import { validatePage } from "../backend/services/pages";
+import { DEFAULT_PRODUCT } from "../shared/catalog";
 import type { Request, Response } from "../backend/http/contracts";
 
 let db: Awaited<ReturnType<typeof testDatabase>>;
@@ -210,5 +212,34 @@ describe("image upload", () => {
     const bad = capture();
     await media(admin({ type: "text/html", data: png }, "POST"), bad.response);
     expect(bad.code).toBe(400);
+  });
+});
+
+describe("planting guide", () => {
+  it("keeps filled steps with uploaded photos and drops empty ones", () => {
+    const page = validatePage({
+      ...DEFAULT_PRODUCT,
+      guide: [
+        {
+          title: "ازرع",
+          text: "خطوة",
+          image: "/api/media?id=0123456789abcdef01234567",
+        },
+        { title: "", text: "" },
+      ],
+    });
+    expect(page.guide).toEqual([
+      {
+        title: "ازرع",
+        text: "خطوة",
+        image: "/api/media?id=0123456789abcdef01234567",
+      },
+    ]);
+    expect(() =>
+      validatePage({
+        ...DEFAULT_PRODUCT,
+        guide: [{ title: "x", text: "", image: "javascript:alert(1)" }],
+      })
+    ).toThrow();
   });
 });

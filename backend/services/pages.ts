@@ -77,6 +77,16 @@ export const pageSchema = z.object({
     )
     .max(20)
     .optional(),
+  guide: z
+    .array(
+      z.object({
+        title: z.string().min(1).max(120),
+        text: z.string().max(400),
+        image: imageUrl.optional().or(z.literal("")),
+      })
+    )
+    .max(8)
+    .optional(),
   reviews: z
     .array(
       z.object({
@@ -111,6 +121,8 @@ function withoutEmptyRows(input: unknown) {
     );
   if (Array.isArray(page.faq))
     page.faq = page.faq.filter(row => filled(row, ["question", "answer"]));
+  if (Array.isArray(page.guide))
+    page.guide = page.guide.filter(row => filled(row, ["title"]));
   if (Array.isArray(page.reviews))
     page.reviews = page.reviews.filter(row => filled(row, ["name", "text"]));
   return page;

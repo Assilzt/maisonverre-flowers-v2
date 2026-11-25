@@ -23,6 +23,13 @@ export type ProductFaq = {
   answer: string;
 };
 
+/** One step of the planting guide shown below the order form. */
+export type ProductGuideStep = {
+  title: string;
+  text: string;
+  image?: string;
+};
+
 /** A real customer review entered by the shop owner. Never ship invented reviews. */
 export type ProductReview = {
   name: string;
@@ -59,6 +66,7 @@ export type ProductLandingConfig = {
   resultDescription: string;
   faq?: ProductFaq[];
   reviews?: ProductReview[];
+  guide?: ProductGuideStep[];
   gift?: {
     enabled: boolean;
     title: string;
@@ -147,6 +155,24 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
     resultTitle: "أضف ألواناً متنوعة إلى حديقتك",
     resultDescription:
       "زينيا وكوزموس وكوليوس ومارغريت: ألوان وأشكال وأطوال مختلفة تملأ أحواض الحديقة والأصص والشرفات.",
+    guide: [
+      {
+        title: "حضّر التربة",
+        text: "املأ أصيصًا أو حوضًا بتربة خفيفة ورطبة قليلًا.",
+      },
+      {
+        title: "ازرع البذور",
+        text: "ضع البذور الكبيرة على عمق نصف سنتيمتر تقريبًا، وانثر بذور الكوليوس الصغيرة على السطح مع ضغط خفيف.",
+      },
+      {
+        title: "اسقِ بلطف",
+        text: "حافظ على التربة رطبة دون إغراق حتى تظهر البراعم.",
+      },
+      {
+        title: "الشمس والصبر",
+        text: "ضع الأصيص في مكان مضيء، وتظهر البراعم عادة خلال أسبوع إلى ثلاثة أسابيع.",
+      },
+    ],
     faq: [
       {
         question: "متى أزرع البذور؟",

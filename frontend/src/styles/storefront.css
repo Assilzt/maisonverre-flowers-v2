@@ -973,3 +973,55 @@
     transition: none !important;
   }
 }
+
+/* Planting guide: calm list below the form, photos small and lazy */
+.mv-guide-sub {
+  margin-top: 4px !important;
+  color: var(--label-3);
+  font-size: 0.95rem;
+}
+.mv-guide ol {
+  display: grid;
+  margin-top: 12px;
+  padding: 0;
+  list-style: none;
+}
+.mv-guide li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--sep);
+}
+.mv-guide li:last-child {
+  border-bottom: 0;
+}
+.mv-guide img,
+.mv-guide-icon {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+.mv-guide-icon {
+  display: grid;
+  place-items: center;
+  background: #eef7f1;
+  font-size: 2rem;
+}
+.mv-guide li:nth-child(3) .mv-guide-icon {
+  background: #eaf3fd;
+}
+.mv-guide li:nth-child(4) .mv-guide-icon {
+  background: #fff6e0;
+}
+.mv-guide strong {
+  display: block;
+  font-size: 1.05rem;
+}
+.mv-guide p {
+  margin-top: 2px;
+  color: var(--label-3);
+  font-size: 0.95rem;
+}

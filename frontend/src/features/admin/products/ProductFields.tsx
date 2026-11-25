@@ -2,6 +2,7 @@ import { ArrowUp, Trash2, Plus } from "lucide-react";
 import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
 import type { ProductErrors } from "./validation";
 import { ImageUploader } from "./ImageUploader";
+import { GuideEditor } from "./GuideEditor";
 export type ProductSection =
   "basic" | "images" | "offers" | "content" | "advanced";
 type Props = {
@@ -422,6 +423,9 @@ export function ProductFields({
           }}
           onChange={v => change("features", v)}
         />
+      </section>
+      <section className="panel">
+        <GuideEditor page={page} onChange={v => change("guide", v)} />
       </section>
       <section className="panel">
         <Collection

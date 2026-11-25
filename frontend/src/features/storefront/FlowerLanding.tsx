@@ -25,6 +25,8 @@ function bundleSavings(bundle: ProductBundle, bundles: ProductBundle[]) {
   return Math.max(0, Math.round(unit * bundle.quantity - bundle.price));
 }
 
+const GUIDE_ICONS = ["🪴", "🌱", "💧", "☀️"];
+
 const STEPS = [
   "اختر العرض واملأ الاستمارة",
   "نتصل بك لتأكيد الطلب",
@@ -92,6 +94,9 @@ export default function FlowerLanding({
         )
       : undefined;
   const showTrust = product.sections?.trust !== false;
+  const guide =
+    product.guide ??
+    (product.slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT.guide : undefined);
   const faq =
     product.faq ??
     (product.slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT.faq : undefined);
@@ -612,6 +617,41 @@ export default function FlowerLanding({
         </section>
 
         <ProductSections product={product} />
+
+        {guide && guide.length > 0 && (
+          <section className="mv-guide" aria-labelledby="guide-title">
+            <h2 id="guide-title">من البذرة إلى الزهرة</h2>
+            <p className="mv-guide-sub">
+              خطوات بسيطة، حتى لو كانت أول مرة تزرع
+            </p>
+            <ol>
+              {guide.map((item, i) => (
+                <li key={i}>
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      width={88}
+                      height={88}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span className="mv-guide-icon" aria-hidden="true">
+                      {GUIDE_ICONS[i % GUIDE_ICONS.length]}
+                    </span>
+                  )}
+                  <div>
+                    <strong>
+                      <span className="num">{i + 1}.</span> {item.title}
+                    </strong>
+                    {item.text && <p>{item.text}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {product.reviews && product.reviews.length > 0 && (
           <section className="mv-reviews" aria-labelledby="reviews-title">

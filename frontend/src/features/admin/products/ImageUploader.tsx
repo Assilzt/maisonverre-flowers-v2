@@ -8,7 +8,7 @@ const MAX_SIDE = 1600;
 const MAX_IMAGES = 10;
 
 /** Shrinks a photo in the browser to WebP (max 1600 px) before upload. */
-async function compress(file: File) {
+export async function compress(file: File) {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
