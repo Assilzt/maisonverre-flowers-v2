@@ -159,6 +159,19 @@ describe("order flow", () => {
   });
 });
 
+describe("repeated phone numbers", () => {
+  it("saves a second order from the same phone within a day and flags it", async () => {
+    const first = await newOrder();
+    const second = await newOrder();
+    const rows =
+      await sql!`SELECT id,order_snapshot FROM atlasio_orders ORDER BY id`;
+    expect(rows).toHaveLength(2);
+    expect(rows[0].order_snapshot.duplicateOf).toBeUndefined();
+    expect(rows[1].order_snapshot.duplicateOf).toMatch(/^AT-/);
+    expect(first.id).not.toBe(second.id);
+  });
+});
+
 describe("image upload", () => {
   const png =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";

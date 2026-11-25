@@ -88,6 +88,13 @@ export async function createOrder(
       .slice(0, 160),
     source = String(body.sourceUrl || "").slice(0, 1000),
     hash = tokenHash(leadToken);
+  // A second complete order from the same phone within a day is still saved,
+  // only flagged so the team can check it during the confirmation call.
+  const duplicate = complete
+    ? ((await sql!`SELECT lead_id FROM atlasio_orders WHERE phone=${phone} AND lead_id<>${leadId} AND status NOT IN ('abandoned','trashed') AND created_at>NOW()-INTERVAL '24 hours' ORDER BY created_at DESC LIMIT 1`) as Array<{
+        lead_id: string;
+      }>)
+    : [];
   const snapshot = JSON.stringify({
     slug: page.slug,
     name: page.name,
@@ -95,6 +102,7 @@ export async function createOrder(
     bundle: page.bundles?.find(b => b.quantity === quantity),
     deliveryFee: fee,
     deliveryType,
+    ...(duplicate[0] ? { duplicateOf: duplicate[0].lead_id } : {}),
   });
   // The customer's browser context, kept for later confirmed/delivered events.
   const capi = await capiSettings();

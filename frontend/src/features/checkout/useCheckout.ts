@@ -12,12 +12,36 @@ import {
 } from "../tracking/product";
 const PHONE_PATTERN = /^(0[567]\d{8}|\+213[567]\d{8})$/;
 
-/** Accepts Arabic-Indic digits and spaces/dashes typed on Arabic keyboards. */
-export const normalizePhone = (value: string) =>
-  value
+/**
+ * Accepts Arabic-Indic digits, spaces and dashes, and turns +213 / 00213 /
+ * 213 into the local 0 form people recognise: "+213 551..." -> "0551...".
+ */
+export const normalizePhone = (value: string) => {
+  const cleaned = value
     .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
     .replace(/[\u06f0-\u06f9]/g, d => String(d.charCodeAt(0) - 0x06f0))
     .replace(/[\s\-().]/g, "");
+  const international = cleaned.match(/^(?:\+|00)?213([567]\d*)$/);
+  return international ? "0" + international[1] : cleaned;
+};
+
+/** Shows a phone as easy-to-check groups: 0555 12 34 56. */
+export const formatPhone = (phone: string) => {
+  if (!/^0\d*$/.test(phone)) return phone;
+  return [
+    phone.slice(0, 4),
+    phone.slice(4, 6),
+    phone.slice(6, 8),
+    phone.slice(8, 10),
+  ]
+    .filter(Boolean)
+    .join(" ");
+};
+
+/** The mobile operator, a familiar cue that the number looks right. */
+export const phoneOperator = (phone: string) =>
+  ({ "05": "Ooredoo", "06": "Mobilis", "07": "Djezzy" })[phone.slice(0, 2)] ||
+  "";
 
 export type DeliveryType = "home" | "stop_desk";
 export type FeeTable = Record<string, { home: number; stopDesk: number }>;
@@ -192,7 +216,11 @@ export function useCheckout(
   const productEventData = getProductEventData(product, offerPrice);
   const initiateCheckoutSentRef = useRef(false);
 
-  const phoneError = phone ? validatePhone(phone) : "";
+  // Errors wait until the person leaves the field: no red while typing.
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneValid = PHONE_PATTERN.test(phone.trim());
+  const phoneDigitsLeft = /^0\d{0,9}$/.test(phone) ? 10 - phone.length : 0;
+  const phoneError = phone && phoneTouched ? validatePhone(phone) : "";
   const rawWilayaCode = wilaya.match(/^\s*(\d{1,2})/)?.[1] || "";
   const selectedWilayaCode = rawWilayaCode ? String(Number(rawWilayaCode)) : "";
   const selectedFee = deliveryFees[selectedWilayaCode] || {
@@ -466,6 +494,7 @@ export function useCheckout(
 
     const validationMessage = validatePhone(phone);
     if (validationMessage) {
+      setPhoneTouched(true);
       setFormError({ field: "phone", message: validationMessage });
       phoneInputRef.current?.focus();
       return;
@@ -559,6 +588,7 @@ export function useCheckout(
     setWilaya("");
     setCommune("");
     setPhoneValue("");
+    setPhoneTouched(false);
     setDeliveryType("home");
     facebookLeadSentRef.current = false;
     resetProductSessionLeadId(product);
@@ -602,6 +632,11 @@ export function useCheckout(
     offerPrice,
     compareAtTotal,
     phoneError,
+    phoneValid,
+    phoneDigitsLeft,
+    phoneTouched,
+    setPhoneTouched,
+    wilayaFees: hasDeliveryFee ? selectedFee : null,
     hasDeliveryFee,
     isFreeShipping,
     deliveryFee,

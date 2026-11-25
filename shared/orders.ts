@@ -59,7 +59,7 @@ export type Order = {
   lead_id: string;
   source_url: string | null;
   product_slug?: string;
-  order_snapshot?: { name?: string };
+  order_snapshot?: { name?: string; duplicateOf?: string };
   status: OrderStatus;
   status_before_trash: OrderStatus | null;
   trashed_at: string | null;

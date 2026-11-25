@@ -95,7 +95,7 @@
 /* ───────────── Storefront landing page ───────────── */
 .mv-landing {
   --mv-ink: #1b2a23;
-  --mv-muted: #56665e;
+  --mv-muted: #3f4d46;
   --mv-line: #e2e8e4;
   --mv-green: #1d6a4d;
   --mv-green-soft: #edf6f1;
@@ -107,6 +107,7 @@
   background: #fff;
   color: var(--mv-ink);
   font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  font-size: 17px;
   line-height: 1.6;
 }
 .mv-landing h1,
@@ -806,4 +807,154 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Easier for older eyes and thumbs: larger text, taller controls. */
+.mv-topbar {
+  font-size: 0.95rem;
+}
+.mv-topbar span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mv-topbar svg {
+  flex: none;
+}
+.mv-form {
+  gap: 18px;
+}
+.mv-field label,
+.mv-delivery legend {
+  font-size: 1.05rem;
+}
+.mv-field input,
+.mv-field select {
+  min-height: 56px;
+  font-size: 18px;
+}
+.mv-help {
+  font-size: 0.95rem;
+}
+.mv-help.is-ok {
+  color: var(--mv-green);
+  font-weight: 700;
+}
+.mv-offer-note,
+.mv-delivery small,
+.mv-reassure {
+  font-size: 0.9rem;
+}
+.mv-offer-label {
+  font-size: 1.05rem;
+}
+.mv-offer-price {
+  font-size: 1.35rem;
+}
+.mv-submit {
+  min-height: 60px;
+  font-size: 1.2rem;
+}
+.mv-delivery label {
+  min-height: 64px;
+  font-size: 1rem;
+}
+
+/* Soft three-step progress above the form */
+.mv-progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mv-progress li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 12px;
+  border-radius: 999px;
+  background: #f1f4f2;
+  color: var(--mv-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.mv-progress li span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #dfe6e2;
+  font-size: 0.8rem;
+}
+.mv-progress li.current {
+  background: var(--mv-green-soft);
+  color: var(--mv-green);
+}
+.mv-progress li.current span,
+.mv-progress li.done span {
+  background: var(--mv-green);
+  color: #fff;
+}
+
+/* Phone field with live, positive feedback */
+.mv-phone {
+  position: relative;
+}
+.mv-phone input#phone {
+  width: 100%;
+  padding-inline-start: 14px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: left;
+}
+.mv-phone.is-valid input#phone {
+  border-color: var(--mv-green);
+  background: #f6fbf8;
+}
+.mv-phone-ok {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--mv-green);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transform: translateY(-50%);
+}
+
+/* One-sentence order summary */
+.mv-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 2px solid #e6dcc8;
+  border-radius: 16px;
+  background: var(--mv-cream);
+  text-align: center;
+}
+.mv-summary-card p {
+  font-size: 1rem;
+}
+.mv-summary-card s {
+  color: var(--mv-muted);
+}
+.mv-summary-card strong {
+  font-size: 1.35rem;
+}
+.mv-summary-card .is-free {
+  color: var(--mv-green);
+  font-weight: 700;
+}
+.mv-summary-place {
+  color: var(--mv-muted);
+  font-size: 0.95rem !important;
 }

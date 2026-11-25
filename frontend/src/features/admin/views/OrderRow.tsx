@@ -127,6 +127,14 @@ export function OrderRow({
           <small>دج</small>
         </span>
         <span className={"ops-badge " + status.tone}>{status.label}</span>
+        {order.order_snapshot?.duplicateOf && (
+          <span
+            className="ops-badge amber"
+            title={"طلب سابق بنفس الرقم: " + order.order_snapshot.duplicateOf}
+          >
+            رقم مكرر
+          </span>
+        )}
         <span className="ops-time num" title={order.created_at}>
           {timeAgo(order.created_at)}
         </span>

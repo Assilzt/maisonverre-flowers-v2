@@ -3,7 +3,12 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { beforeEach, afterEach, it, expect, vi } from "vitest";
 import { DEFAULT_PRODUCT } from "../shared/catalog";
-import { useCheckout } from "../frontend/src/features/checkout/useCheckout";
+import {
+  formatPhone,
+  normalizePhone,
+  phoneOperator,
+  useCheckout,
+} from "../frontend/src/features/checkout/useCheckout";
 const mocks = vi.hoisted(() => ({ pixel: vi.fn(), sequence: [] as string[] }));
 vi.mock("../frontend/src/features/tracking/meta-pixel", () => ({
   trackMetaPixelEventOnce: mocks.pixel,
@@ -208,4 +213,24 @@ it("sends the same event ids as the server's Conversions API", async () => {
   );
   const purchase = mocks.pixel.mock.calls.find(call => call[1] === "Purchase");
   expect(purchase?.[3]).toBe("purchase." + draft.leadId);
+});
+it("turns international numbers into the local form and groups them for reading", () => {
+  expect(normalizePhone("00213551234567")).toBe("0551234567");
+  expect(normalizePhone("+213 551 23 45 67")).toBe("0551234567");
+  expect(normalizePhone("+2135")).toBe("05");
+  expect(formatPhone("0555123456")).toBe("0555 12 34 56");
+  expect(formatPhone("05551")).toBe("0555 1");
+  expect(phoneOperator("0661234567")).toBe("Mobilis");
+  expect(phoneOperator("0771234567")).toBe("Djezzy");
+  expect(phoneOperator("0551234567")).toBe("Ooredoo");
+});
+it("waits until the phone field is left before showing an error", async () => {
+  await act(async () => checkout.setPhone("0551"));
+  expect(checkout.phoneError).toBe("");
+  expect(checkout.phoneDigitsLeft).toBe(6);
+  await act(async () => checkout.setPhoneTouched(true));
+  expect(checkout.phoneError).not.toBe("");
+  await act(async () => checkout.setPhone("0551234567"));
+  expect(checkout.phoneValid).toBe(true);
+  expect(checkout.phoneError).toBe("");
 });

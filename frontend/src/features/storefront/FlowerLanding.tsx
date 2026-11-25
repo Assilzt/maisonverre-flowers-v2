@@ -6,7 +6,11 @@ import {
 } from "@shared/catalog";
 import { WILAYAS } from "@shared/locations";
 import type { StorefrontConfig } from "@shared/storefront";
-import { useCheckout } from "../checkout/useCheckout";
+import {
+  formatPhone,
+  phoneOperator,
+  useCheckout,
+} from "../checkout/useCheckout";
 import { ProductSections } from "./ProductSections";
 import { ProductImage } from "./ProductImage";
 import { CheckIcon, Spinner } from "./icons";
@@ -65,6 +69,10 @@ export default function FlowerLanding({
     offerPrice,
     compareAtTotal,
     phoneError,
+    phoneValid,
+    phoneDigitsLeft,
+    setPhoneTouched,
+    wilayaFees,
     hasDeliveryFee,
     isFreeShipping,
     deliveryFee,
@@ -93,19 +101,55 @@ export default function FlowerLanding({
   const fieldError = (field: string) =>
     formError?.field === field ? formError.message : "";
 
-  // Sticky call-to-action, shown only while the order form is off screen.
+  // Sticky button: only when neither the hero button nor the form is visible.
   const orderRef = useRef<HTMLElement | null>(null);
+  const heroCtaRef = useRef<HTMLAnchorElement | null>(null);
   const [orderVisible, setOrderVisible] = useState(true);
+  const [heroCtaVisible, setHeroCtaVisible] = useState(true);
   useEffect(() => {
-    const target = orderRef.current;
-    if (!target || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setOrderVisible(entry.isIntersecting),
-      { rootMargin: "0px 0px -15% 0px" }
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
+    if (typeof IntersectionObserver === "undefined") return;
+    const watch = (
+      target: Element | null,
+      onChange: (visible: boolean) => void
+    ) => {
+      if (!target) return undefined;
+      const observer = new IntersectionObserver(
+        ([entry]) => onChange(entry.isIntersecting),
+        { rootMargin: "0px 0px -15% 0px" }
+      );
+      observer.observe(target);
+      return observer;
+    };
+    const observers = [
+      watch(orderRef.current, setOrderVisible),
+      watch(heroCtaRef.current, setHeroCtaVisible),
+    ];
+    return () => observers.forEach(observer => observer?.disconnect());
   }, []);
+  const stickyHidden = orderVisible || heroCtaVisible;
+
+  // Once the phone is complete, guide to the name; after a wilaya, to the commune.
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const communeRef = useRef<HTMLSelectElement | null>(null);
+  const wasValid = useRef(false);
+  useEffect(() => {
+    if (
+      phoneValid &&
+      !wasValid.current &&
+      document.activeElement?.id === "phone"
+    )
+      nameRef.current?.focus();
+    wasValid.current = phoneValid;
+  }, [phoneValid]);
+  useEffect(() => {
+    if (communesStatus === "ready" && document.activeElement?.id === "wilaya")
+      communeRef.current?.focus();
+  }, [communesStatus]);
+  const step = !phoneValid ? 1 : !wilaya || !commune ? 2 : 3;
+  const stopDeskSaving =
+    wilayaFees && wilayaFees.home > wilayaFees.stopDesk
+      ? wilayaFees.home - wilayaFees.stopDesk
+      : 0;
 
   const deliveryText = isFreeShipping
     ? "مجاني"
@@ -124,9 +168,15 @@ export default function FlowerLanding({
   return (
     <div className="mv-landing" dir="rtl">
       <div className="mv-topbar" role="note">
-        <span>الدفع عند الاستلام</span>
-        <span aria-hidden="true">•</span>
-        <span>توصيل للمنزل أو مكتب الشحن</span>
+        {(showTrust && product.trustBadges.length
+          ? product.trustBadges
+          : ["الدفع عند الاستلام", "التوصيل إلى كل الولايات"]
+        ).map((badge, i) => (
+          <span key={i}>
+            <CheckIcon />
+            {badge}
+          </span>
+        ))}
       </div>
 
       <main className="mv-main">
@@ -151,17 +201,7 @@ export default function FlowerLanding({
                   </s>
                 )}
             </p>
-            {showTrust && product.trustBadges.length > 0 && (
-              <ul className="mv-chips">
-                {product.trustBadges.map((badge, i) => (
-                  <li key={i}>
-                    <CheckIcon />
-                    {badge}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <a className="mv-hero-cta" href="#order">
+            <a className="mv-hero-cta" href="#order" ref={heroCtaRef}>
               اطلب الآن
             </a>
           </div>
@@ -219,7 +259,19 @@ export default function FlowerLanding({
             <>
               <div className="mv-order-head">
                 <h2 id="order-title">اطلب الآن والدفع عند الاستلام</h2>
-                <p>اختر العرض، املأ بياناتك وسنتصل بك لتأكيد الطلب</p>
+                <ol className="mv-progress" aria-label="خطوات الطلب">
+                  {["اختر العرض", "بياناتك", "التأكيد"].map((label, i) => (
+                    <li
+                      key={label}
+                      className={
+                        i + 1 < step ? "done" : i + 1 === step ? "current" : ""
+                      }
+                    >
+                      <span>{i + 1}</span>
+                      {label}
+                    </li>
+                  ))}
+                </ol>
               </div>
 
               {bundles.length > 0 && (
@@ -285,50 +337,67 @@ export default function FlowerLanding({
                 className="mv-form"
                 noValidate
               >
-                <div className="mv-field">
-                  <label htmlFor="phone">رقم الهاتف</label>
-                  <input
-                    ref={phoneInputRef}
-                    id="phone"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    required
-                    maxLength={16}
-                    placeholder="0551234567"
-                    dir="ltr"
-                    aria-invalid={Boolean(
-                      (phone && phoneError) || fieldError("phone")
+                <div className="mv-field mv-phone-field">
+                  <label htmlFor="phone">رقم هاتفك</label>
+                  <div
+                    className={
+                      "mv-phone" +
+                      (phoneValid ? " is-valid" : "") +
+                      (phoneError || fieldError("phone") ? " is-error" : "")
+                    }
+                  >
+                    <input
+                      ref={phoneInputRef}
+                      id="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={formatPhone(phone)}
+                      onChange={e => setPhone(e.target.value)}
+                      onBlur={() => setPhoneTouched(true)}
+                      required
+                      maxLength={17}
+                      placeholder="0555 12 34 56"
+                      dir="ltr"
+                      aria-invalid={Boolean(phoneError || fieldError("phone"))}
+                      aria-describedby="phone-help"
+                    />
+                    {phoneValid && (
+                      <span className="mv-phone-ok">
+                        <CheckIcon />
+                        {phoneOperator(phone)}
+                      </span>
                     )}
-                    aria-describedby="phone-help"
-                  />
+                  </div>
                   <p
                     id="phone-help"
                     className={
                       "mv-help" +
-                      ((phone && phoneError) || fieldError("phone")
-                        ? " is-error"
-                        : "")
+                      (phoneError || fieldError("phone") ? " is-error" : "") +
+                      (phoneValid ? " is-ok" : "")
                     }
                     role={fieldError("phone") ? "alert" : undefined}
                   >
                     {fieldError("phone") ||
-                      (phone && phoneError) ||
-                      "سنتصل بك على هذا الرقم لتأكيد الطلب"}
+                      phoneError ||
+                      (phoneValid
+                        ? "رقم صحيح — نتصل بك عليه لتأكيد الطلب"
+                        : phone && phoneDigitsLeft > 0
+                          ? `باقي ${phoneDigitsLeft} أرقام`
+                          : "نتصل بك مرة واحدة لتأكيد الطلب فقط")}
                   </p>
                 </div>
 
                 <div className="mv-field">
-                  <label htmlFor="fullName">الاسم الكامل</label>
+                  <label htmlFor="fullName">الاسم واللقب</label>
                   <input
+                    ref={nameRef}
                     id="fullName"
                     type="text"
                     autoComplete="name"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
-                    placeholder="الاسم واللقب"
+                    placeholder="مثال: محمد بن علي"
                   />
                 </div>
 
@@ -365,6 +434,7 @@ export default function FlowerLanding({
                   <div className="mv-field">
                     <label htmlFor="commune">البلدية</label>
                     <select
+                      ref={communeRef}
                       id="commune"
                       value={commune}
                       onChange={event => setCommune(event.target.value)}
@@ -422,7 +492,10 @@ export default function FlowerLanding({
                       checked={deliveryType === "home"}
                       onChange={() => setDeliveryType("home")}
                     />
-                    <span>إلى المنزل</span>
+                    <span>
+                      إلى باب المنزل
+                      <small>يصلك الطلب إلى بيتك</small>
+                    </span>
                   </label>
                   <label
                     className={
@@ -439,43 +512,50 @@ export default function FlowerLanding({
                       onChange={() => setDeliveryType("stop_desk")}
                     />
                     <span>
-                      مكتب الشحن
+                      من مكتب شركة التوصيل
                       <small>
                         {!commune
                           ? "اختر البلدية أولاً"
-                          : stopDeskAvailable
-                            ? "أرخص عادةً"
-                            : "غير متوفر في هذه البلدية"}
+                          : !stopDeskAvailable
+                            ? "غير متوفر في هذه البلدية"
+                            : stopDeskSaving > 0 && !isFreeShipping
+                              ? `وفّر ${money(stopDeskSaving)} ${product.currency}`
+                              : "تستلمه من المكتب القريب منك"}
                       </small>
                     </span>
                   </label>
                 </fieldset>
 
-                <div className="mv-total" aria-live="polite">
-                  <div>
-                    <span>{selectedBundle?.label || "سعر المنتج"}</span>
-                    <span>
-                      {compareAtTotal && offerPrice < compareAtTotal && (
-                        <s>
-                          {money(compareAtTotal)} {product.currency}
-                        </s>
-                      )}{" "}
+                <div className="mv-summary-card" aria-live="polite">
+                  <p>
+                    <span>{selectedBundle?.label || product.name}</span>
+                    {" · "}
+                    {compareAtTotal && offerPrice < compareAtTotal && (
+                      <s className="num">{money(compareAtTotal)}</s>
+                    )}{" "}
+                    <span className="num">
                       {money(offerPrice)} {product.currency}
                     </span>
-                  </div>
-                  <div>
-                    <span>التوصيل</span>
-                    <span className={isFreeShipping ? "is-free" : ""}>
+                    {" + التوصيل "}
+                    <span className={isFreeShipping ? "is-free" : "num"}>
                       {deliveryText}
                     </span>
-                  </div>
-                  <div className="mv-total-final">
-                    <span>{feeReady ? "المجموع عند الاستلام" : "المجموع"}</span>
-                    <strong>
+                  </p>
+                  <strong>
+                    {feeReady ? "تدفع عند الاستلام: " : "المجموع: "}
+                    <span className="num">
                       {money(total)} {product.currency}
-                      {!feeReady && <small> + التوصيل</small>}
-                    </strong>
-                  </div>
+                    </span>
+                    {!feeReady && <small> + التوصيل</small>}
+                  </strong>
+                  {wilaya && commune && (
+                    <p className="mv-summary-place">
+                      {deliveryType === "stop_desk"
+                        ? "استلام من مكتب التوصيل"
+                        : "توصيل إلى المنزل"}{" "}
+                      · {commune}، {wilaya.replace(/^\d+\s*-\s*/, "")}
+                    </p>
+                  )}
                 </div>
 
                 {(formError?.field === "fees" ||
@@ -505,11 +585,11 @@ export default function FlowerLanding({
                       جاري الإرسال...
                     </>
                   ) : (
-                    "اطلب الآن — الدفع عند الاستلام"
+                    "أكّد طلبي — الدفع عند الاستلام"
                   )}
                 </button>
                 <p className="mv-reassure">
-                  لن تدفع شيئاً الآن. سنتصل بك لتأكيد الطلب قبل الإرسال.
+                  لن تدفع شيئًا الآن · سنتصل بك قبل الإرسال
                 </p>
               </form>
             </>
@@ -571,8 +651,8 @@ export default function FlowerLanding({
 
       {!submitted && (
         <div
-          className={"mv-sticky" + (orderVisible ? "" : " is-visible")}
-          aria-hidden={orderVisible}
+          className={"mv-sticky" + (stickyHidden ? "" : " is-visible")}
+          aria-hidden={stickyHidden}
         >
           <div>
             <strong>
@@ -580,7 +660,7 @@ export default function FlowerLanding({
             </strong>
             <span>{selectedBundle?.label}</span>
           </div>
-          <a href="#order" tabIndex={orderVisible ? -1 : 0}>
+          <a href="#order" tabIndex={stickyHidden ? -1 : 0}>
             اطلب الآن
           </a>
         </div>
