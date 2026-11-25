@@ -56,10 +56,12 @@ export function OrderRow({
   order,
   context: c,
   selecting = false,
+  focused = false,
 }: {
   order: Order;
   context: DashboardContext;
   selecting?: boolean;
+  focused?: boolean;
 }) {
   const selected = c.selectedIds.includes(order.id);
   const status = orderStatusView(order);
@@ -81,6 +83,7 @@ export function OrderRow({
         "ops-row tone-" +
         status.tone +
         (selected ? " is-selected" : "") +
+        (focused ? " is-focused" : "") +
         (selecting ? " selecting" : "")
       }
       onClick={() =>

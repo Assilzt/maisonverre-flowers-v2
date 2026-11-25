@@ -1,11 +1,10 @@
 import {
   sql,
-  Request,
-  Response,
   loadEcoSettings,
   loadCapiSettings,
   type CapiSettings,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { publishedPage } from "../services/pages.js";
 import { validateOrderInput, tokenHash } from "../services/order-input.js";
 import { deliveryFees } from "../services/delivery-fees.js";

@@ -1,14 +1,13 @@
 import {
   sql,
-  Request,
-  Response,
   selectColumns,
-  isAdmin,
   loadEcoSettings,
   rowById,
   recordEvent,
   canManualTransition,
 } from "../repositories/index.js";
+import { isAdmin } from "../http/request.js";
+import type { Request, Response } from "../http/contracts.js";
 import { updateContact } from "./update-contact.js";
 import { updateNote } from "./update-note.js";
 import { updateEdit } from "./update-edit.js";

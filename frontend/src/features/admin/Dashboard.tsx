@@ -15,6 +15,7 @@ import { OrderDialog } from "./views/OrderDialog";
 import { EditOrderDialog } from "./views/EditOrderDialog";
 import { OrdersScreen } from "./views/OrdersScreen";
 import { OperationsPanel } from "./OperationsPanel";
+import { Toaster } from "./ui/Toaster";
 import { useDashboard } from "./useDashboard";
 export default function Dashboard() {
   const context = useDashboard();
@@ -116,11 +117,14 @@ export default function Dashboard() {
         />
       )}
       <DashboardMobileDrawer context={context} />
-      <SettingsDialog context={context} />
+      <div className="admin-surface ios-sheet">
+        <SettingsDialog context={context} />
+      </div>
       <div className="admin-surface ios-sheet">
         <OrderDialog context={context} />
       </div>
       <EditOrderDialog context={context} />
+      <Toaster />
     </main>
   );
 }

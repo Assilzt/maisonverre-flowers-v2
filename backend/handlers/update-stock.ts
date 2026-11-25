@@ -1,9 +1,5 @@
-import {
-  sql,
-  Request,
-  Response,
-  loadEcoSettings,
-} from "../repositories/index.js";
+import { sql, loadEcoSettings } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 export async function updateStock(
   request: Request,
   response: Response,

@@ -26,9 +26,8 @@ import {
   invalidateCapiSettings,
   loadEcoSettings,
   rowById,
-  type Request,
-  type Response,
 } from "../backend/repositories/index";
+import type { Request, Response } from "../backend/http/contracts";
 
 const TOKEN = "EAABtesttokenvalue1234567890";
 const PIXEL = "837444182648161"; // seeded by the baseline migration

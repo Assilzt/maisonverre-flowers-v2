@@ -1,12 +1,11 @@
 import {
   sql,
-  Request,
-  Response,
   selectColumns,
   loadEcoSettings,
   rowById,
   recordEvent,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { enqueueStatusEvent } from "../jobs/capi.js";
 import { canDo, type FlowAction } from "../../shared/order-flow.js";
 export async function updateContact(

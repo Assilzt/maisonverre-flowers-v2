@@ -19,6 +19,8 @@ import { internationalPhone } from "@shared/phone";
 import type { DashboardContext } from "../useDashboard";
 import { customerSmsMessage } from "../presentation";
 import { orderStatusView, timeAgo } from "./OrderRow";
+import { canDo } from "@shared/order-flow";
+import { setCallMode, toast, useUi } from "../ui/store";
 
 const STEPS = ["جديد", "مؤكد", "مشحون", "مسلّم"];
 
@@ -49,6 +51,25 @@ export function OrderSheetTop({
   const busy = c.contactBusy || c.loading;
   const destructive = (label: string) =>
     window.confirm(`${label}: سيُلغى الطلب. متابعة؟`);
+  // Call mode: after each call result, open the next order to call.
+  const { callMode } = useUi();
+  const waiting = c.orders.filter(
+    item => item.id !== order.id && canDo(item, "refused")
+  );
+  const next = () => {
+    if (!callMode) return;
+    const following =
+      waiting.find(item => item.status === "complete") || waiting[0];
+    if (following) c.openOrder(following);
+    else {
+      setCallMode(false);
+      c.closeOrder();
+      toast("انتهت كل الطلبات التي تحتاج اتصالًا");
+    }
+  };
+  const contact = async (result: string) => {
+    if (await c.recordContact(order, result)) next();
+  };
 
   return (
     <>
@@ -126,6 +147,14 @@ export function OrderSheetTop({
         ))}
       </ol>
 
+      {callMode && (
+        <div className="sheet-callmode">
+          <span>وضع الاتصال · متبقٍ {waiting.length}</span>
+          <button type="button" onClick={() => setCallMode(false)}>
+            إنهاء
+          </button>
+        </div>
+      )}
       <section className="sheet-next">
         <h3>الخطوة التالية</h3>
         {actions.includes("refused") && (
@@ -139,7 +168,7 @@ export function OrderSheetTop({
               type="button"
               className="ops-btn primary sheet-main"
               disabled={busy || !actions.includes("confirm")}
-              onClick={() => void c.recordContact(order, "confirmed")}
+              onClick={() => void contact("confirmed")}
             >
               <Check size={18} />
               تأكيد الطلب
@@ -153,7 +182,7 @@ export function OrderSheetTop({
                   disabled={busy}
                   onClick={() => {
                     if (danger && !destructive(label)) return;
-                    void c.recordContact(order, action);
+                    void contact(action);
                   }}
                 >
                   {label}

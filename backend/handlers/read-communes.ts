@@ -1,11 +1,10 @@
+import { loadEcoSettings } from "../repositories/index.js";
+import { queryValue } from "../http/request.js";
+import type { Request, Response } from "../http/contracts.js";
 import {
   publicReadCache,
   PUBLIC_CACHE_TTL_MS,
-  Request,
-  Response,
-  queryValue,
-  loadEcoSettings,
-} from "../repositories/index.js";
+} from "../services/read-cache.js";
 import { fetchEcoTrackCommunes } from "../integrations/ecotrack/client.js";
 
 export async function communes(

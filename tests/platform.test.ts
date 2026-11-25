@@ -13,11 +13,8 @@ import { sql } from "../backend/repositories/connection";
 import { createOrder } from "../backend/handlers/create";
 import { issueSession, verifySession } from "../backend/auth/session";
 import { syncShipments } from "../backend/services/shipment-sync";
-import {
-  loadEcoSettings,
-  type Request,
-  type Response,
-} from "../backend/repositories/index";
+import { loadEcoSettings } from "../backend/repositories/index";
+import type { Request, Response } from "../backend/http/contracts";
 import { validatePage } from "../backend/services/pages";
 import { DEFAULT_PRODUCT } from "../shared/catalog";
 import { shippingStatus, remoteActionAllowed } from "../shared/shipping-status";

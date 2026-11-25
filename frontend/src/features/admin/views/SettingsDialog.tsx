@@ -39,19 +39,16 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
     <>
       {settingsOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/45 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/25 p-0 backdrop-blur-[3px] sm:items-center sm:p-6"
           onClick={() => setSettingsOpen(false)}
         >
           <section
-            className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-t-[30px] bg-[#f7faf8] p-5 shadow-2xl sm:rounded-[30px] sm:p-7"
+            className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-t-[26px] bg-[#f2f2f7] p-5 shadow-2xl sm:rounded-[26px] sm:p-7"
             onClick={event => event.stopPropagation()}
           >
             <div className="mb-6 flex items-start justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[.2em] text-emerald-600">
-                  ATLASIO / SETTINGS
-                </p>
-                <h2 className="mt-1 text-2xl font-black text-slate-950">
+                <h2 className="mt-1 text-2xl font-bold text-slate-950">
                   إعدادات المتجر
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
@@ -61,7 +58,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
               <button
                 type="button"
                 onClick={() => setSettingsOpen(false)}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -74,10 +71,10 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                 </button>
               </div>
             )}
-            <div className="mb-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div className="mb-5 rounded-[18px] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-black text-slate-950">
+                  <h3 className="text-base font-bold text-slate-950">
                     معرّف Meta Pixel
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
@@ -85,12 +82,12 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                     التغيير يُطبّق عند إعادة تحميل صفحة المتجر.
                   </p>
                 </div>
-                <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700">
+                <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
                   Meta
                 </span>
               </div>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <label className="flex-1 text-xs font-black text-slate-500">
+                <label className="flex-1 text-xs font-bold text-slate-500">
                   Pixel ID
                   <input
                     value={pixelIdDraft}
@@ -100,14 +97,14 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                     placeholder="مثال: 837444182648161"
                     dir="ltr"
                     aria-label="معرّف Meta Pixel"
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-left text-sm font-bold tracking-wide outline-none focus:border-blue-400 focus:bg-white"
+                    className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-left text-sm font-bold tracking-wide outline-none focus:border-blue-400 focus:bg-white"
                   />
                 </label>
                 <button
                   type="button"
                   onClick={() => void savePixelId()}
                   disabled={savingPixelId}
-                  className="self-end rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:opacity-60"
+                  className="self-end rounded-xl bg-[#16804f] px-5 py-3 text-sm font-bold text-white hover:bg-[#11673f] disabled:opacity-60"
                 >
                   {savingPixelId ? "جارٍ الحفظ..." : "حفظ معرّف Pixel"}
                 </button>
@@ -129,19 +126,17 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
             <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
               <div>
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-black text-slate-900">
-                    الشركات المرتبطة
-                  </h3>
+                  <h3 className="font-bold text-slate-900">الشركات المرتبطة</h3>
                   <button
                     type="button"
                     onClick={startNewProvider}
-                    className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white"
+                    className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-bold text-white"
                   >
                     + شركة جديدة
                   </button>
                 </div>
                 {providers.length === 0 ? (
-                  <div className="rounded-2xl bg-white p-8 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                  <div className="rounded-2xl bg-white p-8 text-center text-sm font-bold text-slate-500 shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)]">
                     لا توجد شركة توصيل بعد.
                   </div>
                 ) : (
@@ -151,14 +146,14 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                         type="button"
                         key={item.id}
                         onClick={() => selectProviderForEdit(item)}
-                        className={`min-h-[108px] rounded-2xl p-4 text-right transition ${editingProviderId === item.id ? "bg-slate-950 text-white shadow-lg" : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 hover:-translate-y-0.5 hover:ring-emerald-300"}`}
+                        className={`min-h-[108px] rounded-2xl p-4 text-right transition ${editingProviderId === item.id ? "bg-[#16804f] text-white shadow-lg" : "bg-white text-slate-800 shadow-sm shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)] hover:-translate-y-0.5 hover:ring-emerald-300"}`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-base font-black">
+                          <span className="text-base font-bold">
                             {item.name}
                           </span>
                           <span
-                            className={`rounded-full px-2 py-1 text-[10px] font-black ${editingProviderId === item.id ? "bg-white/15 text-emerald-200" : item.tokenConfigured ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
+                            className={`rounded-full px-2 py-1 text-[10px] font-bold ${editingProviderId === item.id ? "bg-white/15 text-emerald-200" : item.tokenConfigured ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
                           >
                             {item.tokenConfigured ? "متصل" : "يحتاج توكن"}
                           </span>
@@ -168,7 +163,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                   </div>
                 )}
               </div>
-              <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="rounded-[18px] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)]">
                 {editingProviderId ? (
                   <>
                     <div className="mb-5 flex items-center justify-between">
@@ -176,7 +171,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                         <p className="text-xs font-bold text-emerald-600">
                           تفاصيل الشركة
                         </p>
-                        <h3 className="mt-1 text-lg font-black">
+                        <h3 className="mt-1 text-lg font-bold">
                           {providerNameDraft || "شركة التوصيل"}
                         </h3>
                       </div>
@@ -187,7 +182,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                             selectedProviderId || activeProviderId
                           )
                         }
-                        className="flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-600"
+                        className="flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600"
                       >
                         <RefreshCw className="h-3.5 w-3.5" /> تحديث المخزون
                       </button>
@@ -197,7 +192,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                         <p className="text-xs font-bold text-emerald-700">
                           المنتجات المتاحة
                         </p>
-                        <p className="mt-2 text-2xl font-black text-emerald-900">
+                        <p className="mt-2 text-2xl font-bold text-emerald-900">
                           {stockProducts.length}
                         </p>
                       </div>
@@ -205,7 +200,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                         <p className="text-xs font-bold text-blue-700">
                           إجمالي الكمية
                         </p>
-                        <p className="mt-2 text-2xl font-black text-blue-900">
+                        <p className="mt-2 text-2xl font-bold text-blue-900">
                           {stockProducts.reduce(
                             (sum, item) => sum + item.quantity,
                             0
@@ -214,26 +209,26 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <label className="block text-xs font-black text-slate-500">
+                      <label className="block text-xs font-bold text-slate-500">
                         اسم الشركة
                         <input
                           value={providerNameDraft}
                           onChange={event =>
                             setProviderNameDraft(event.target.value)
                           }
-                          className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold outline-none focus:border-emerald-400 focus:bg-white"
+                          className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-[rgba(22,128,79,.25)]"
                         />
                       </label>
-                      <label className="block text-xs font-black text-slate-500">
+                      <label className="block text-xs font-bold text-slate-500">
                         Provider
                         <input
                           value={provider}
                           onChange={event => setProvider(event.target.value)}
                           dir="ltr"
-                          className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-left text-sm font-bold outline-none focus:border-emerald-400 focus:bg-white"
+                          className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-left text-sm font-bold outline-none focus:ring-4 focus:ring-[rgba(22,128,79,.25)]"
                         />
                       </label>
-                      <label className="block text-xs font-black text-slate-500">
+                      <label className="block text-xs font-bold text-slate-500">
                         التوكن
                         <input
                           type="password"
@@ -241,14 +236,14 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                           onChange={event => setToken(event.target.value)}
                           placeholder="اتركه فارغاً للإبقاء على التوكن الحالي"
                           dir="ltr"
-                          className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-left text-sm font-bold outline-none focus:border-emerald-400 focus:bg-white"
+                          className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-left text-sm font-bold outline-none focus:ring-4 focus:ring-[rgba(22,128,79,.25)]"
                         />
                       </label>
                       <button
                         type="button"
                         onClick={() => void saveProviderProfile()}
                         disabled={savingSettings}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3.5 text-sm font-black text-white disabled:opacity-60"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#16804f] px-4 py-3.5 text-sm font-bold text-white disabled:opacity-60"
                       >
                         {savingSettings && (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -257,21 +252,21 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                       </button>
                     </div>
                     <div className="mt-5 rounded-2xl bg-amber-50 p-4">
-                      <p className="text-xs font-black text-amber-800">
+                      <p className="text-xs font-bold text-amber-800">
                         طريقة الشحن
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => void saveShippingMode(true)}
-                          className={`rounded-xl px-3 py-2.5 text-xs font-black ${shipFromStock ? "bg-emerald-500 text-white" : "bg-white text-slate-500"}`}
+                          className={`rounded-xl px-3 py-2.5 text-xs font-bold ${shipFromStock ? "bg-emerald-500 text-white" : "bg-white text-slate-500"}`}
                         >
                           من stock
                         </button>
                         <button
                           type="button"
                           onClick={() => void saveShippingMode(false)}
-                          className={`rounded-xl px-3 py-2.5 text-xs font-black ${!shipFromStock ? "bg-blue-500 text-white" : "bg-white text-slate-500"}`}
+                          className={`rounded-xl px-3 py-2.5 text-xs font-bold ${!shipFromStock ? "bg-blue-500 text-white" : "bg-white text-slate-500"}`}
                         >
                           بدون stock
                         </button>
@@ -300,7 +295,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                 ) : (
                   <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl bg-slate-50 p-8 text-center">
                     <Settings className="h-10 w-10 text-slate-300" />
-                    <h3 className="mt-4 font-black text-slate-700">
+                    <h3 className="mt-4 font-bold text-slate-700">
                       اختر شركة توصيل
                     </h3>
                     <p className="mt-2 max-w-xs text-sm leading-6 text-slate-500">

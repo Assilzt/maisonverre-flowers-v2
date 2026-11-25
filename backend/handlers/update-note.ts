@@ -1,11 +1,10 @@
 import {
   sql,
-  Request,
-  Response,
   loadEcoSettings,
   rowById,
   recordEvent,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 export async function updateNote(
   request: Request,
   response: Response,

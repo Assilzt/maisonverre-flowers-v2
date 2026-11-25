@@ -1,4 +1,5 @@
-import { isAdmin, Request, Response } from "../backend/repositories/index.js";
+import { isAdmin } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 import { flushNotifications } from "../backend/jobs/notifications.js";
 export default async function telegram(request: Request, response: Response) {
   if (!isAdmin(request)) {

@@ -1,11 +1,10 @@
 import {
-  Request,
-  Response,
   loadEcoSettings,
   rowById,
   cancelLocalShipment,
   recordEvent,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { cancelEcoTrackParcel } from "../integrations/ecotrack/client.js";
 
 export async function updateUnship(

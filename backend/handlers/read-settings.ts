@@ -1,11 +1,10 @@
 import {
-  Request,
-  Response,
-  isAdmin,
   loadMetaPixelId,
   loadEcoSettings,
   publicProviders,
 } from "../repositories/index.js";
+import { isAdmin } from "../http/request.js";
+import type { Request, Response } from "../http/contracts.js";
 import { capiStatus } from "./update-settings.js";
 export async function settings(
   request: Request,

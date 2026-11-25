@@ -1,12 +1,11 @@
 import {
   sql,
-  Request,
-  Response,
   selectColumns,
   loadEcoSettings,
   rowById,
   recordEvent,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { canTrash } from "../../shared/order-flow.js";
 export async function updateTrash(
   request: Request,

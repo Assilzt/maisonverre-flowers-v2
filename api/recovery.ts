@@ -1,13 +1,11 @@
 import {
-  isAdmin,
-  getBody,
   loadEcoSettings,
   rowById,
   sql,
   recordEvent,
-  Request,
-  Response,
 } from "../backend/repositories/index.js";
+import { isAdmin, getBody } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 import { fetchEcoTrackOrders } from "../backend/integrations/ecotrack/client.js";
 export default async function recovery(request: Request, response: Response) {
   if (!isAdmin(request)) {

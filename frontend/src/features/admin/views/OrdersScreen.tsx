@@ -1,5 +1,7 @@
 import "@/styles/ops.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { setCallMode } from "../ui/store";
+import { canDo } from "@shared/order-flow";
 import {
   ChevronLeft,
   ChevronRight,
@@ -52,6 +54,46 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
     setSelecting(false);
     c.setSelectedIds([]);
   };
+  // Keyboard: / search · J/K move · Enter open · C confirm · Esc leave select.
+  const [focused, setFocused] = useState(-1);
+  const search = useRef<HTMLInputElement>(null);
+  const keys = useRef<(event: KeyboardEvent) => void>(() => {});
+  keys.current = event => {
+    const target = event.target as HTMLElement;
+    if (
+      c.activeOrder ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)
+    )
+      return;
+    const list = c.visibleOrders;
+    const key = event.key.toLowerCase();
+    if (key === "/") {
+      event.preventDefault();
+      search.current?.focus();
+    } else if (key === "j" || key === "arrowdown") {
+      event.preventDefault();
+      setFocused(i => Math.min(list.length - 1, i + 1));
+    } else if (key === "k" || key === "arrowup") {
+      event.preventDefault();
+      setFocused(i => Math.max(0, i - 1));
+    } else if (key === "enter" && list[focused]) {
+      c.openOrder(list[focused]);
+    } else if (
+      key === "c" &&
+      list[focused] &&
+      canDo(list[focused], "confirm")
+    ) {
+      void c.recordContact(list[focused], "confirmed");
+    } else if (key === "escape") stopSelecting();
+  };
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => keys.current(event);
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
   const total = Object.entries(c.counts)
     .filter(([status]) => status !== "trashed")
     .reduce((sum, [, count]) => sum + count, 0);
@@ -125,7 +167,10 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
             <button
               type="button"
               className="ops-btn primary"
-              onClick={c.startWork}
+              onClick={() => {
+                setCallMode(true);
+                c.startWork();
+              }}
               title="يفتح أول طلب يحتاج إجراءً"
             >
               <Play size={16} />
@@ -183,6 +228,7 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
         <label className="ops-search">
           <Search size={17} />
           <input
+            ref={search}
             className="ops-input"
             type="search"
             value={c.query}
@@ -329,12 +375,13 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
             </div>
           ))
         ) : rows.length ? (
-          rows.map(order => (
+          rows.map((order, index) => (
             <OrderRow
               key={order.id}
               order={order}
               context={c}
               selecting={selectMode}
+              focused={index === focused}
             />
           ))
         ) : (

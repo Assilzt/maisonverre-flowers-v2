@@ -5,7 +5,9 @@
  */
 .ops,
 .ios-nav,
-.ios-sheet {
+.ios-sheet,
+.ios-drawer,
+.ops-login {
   --bg: #f2f2f7;
   --card: #ffffff;
   --label: #1c1c1e;
@@ -997,9 +999,10 @@
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
-.admin-surface.ios-sheet input,
-.admin-surface.ios-sheet select,
-.admin-surface.ios-sheet textarea {
+.admin-surface.ios-sheet.ios-sheet
+  input:not([type="checkbox"]):not([type="radio"]),
+.admin-surface.ios-sheet.ios-sheet select,
+.admin-surface.ios-sheet.ios-sheet textarea {
   border: 0;
   border-radius: 12px;
   background: var(--fill);
@@ -1463,6 +1466,8 @@
 
 /* Password screen */
 .ops-login {
+  box-sizing: border-box;
+  width: 100%;
   display: grid;
   place-items: center;
   min-height: 100vh;
@@ -1479,7 +1484,8 @@
   display: grid;
   justify-items: center;
   gap: 10px;
-  width: min(400px, 100%);
+  width: 100%;
+  max-width: 400px;
   padding: 32px 24px 20px;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.85);
@@ -1551,4 +1557,82 @@
   height: 52px;
   border-radius: 14px;
   font-size: 17px;
+}
+
+/* Toasts */
+.ops-toasts {
+  position: fixed;
+  inset: auto 0 96px;
+  z-index: 95;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.ops-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 12px 10px 16px;
+  border-radius: 18px;
+  background: rgba(28, 28, 30, 0.92);
+  color: #fff;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic",
+    system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px);
+  pointer-events: auto;
+  animation: ops-rise 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.ops-toast.success svg {
+  color: #30d158;
+}
+.ops-toast.error svg {
+  color: #ff453a;
+}
+.ops-toast.info svg {
+  color: #64d2ff;
+}
+.ops-toast button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sheet-callmode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(0, 122, 255, 0.1);
+  color: #0062cc;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sheet-callmode button {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(0, 122, 255, 0.15);
+  color: #0062cc;
+  font: inherit;
+  cursor: pointer;
+}
+.ops-row.is-focused {
+  box-shadow: inset 0 0 0 2px var(--tint);
+}
+.ops-kbd {
+  color: var(--label-3);
+  font-size: 12px;
 }

@@ -1,4 +1,5 @@
-import { Request, Response, loadEcoSettings } from "../repositories/index.js";
+import { loadEcoSettings } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { updateShip } from "./update-ship.js";
 export async function updateShipAll(
   request: Request,

@@ -1,9 +1,5 @@
-import {
-  Request,
-  Response,
-  loadMetaPixelId,
-  loadEcoSettings,
-} from "../repositories/index.js";
+import { loadMetaPixelId, loadEcoSettings } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 export async function pixelConfig(
   request: Request,
   response: Response,

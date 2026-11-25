@@ -7,11 +7,8 @@ import {
   STOREFRONT_CACHE_TAG,
 } from "../backend/services/cache-tags.js";
 import { DEFAULT_PRODUCT } from "../shared/catalog.js";
-import {
-  queryValue,
-  type Request,
-  type Response,
-} from "../backend/repositories/index.js";
+import { queryValue } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 
 const errorPage = (title: string) =>
   `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px"><h1>${title}</h1><p><a href="/">العودة للمتجر</a></p></body></html>`;

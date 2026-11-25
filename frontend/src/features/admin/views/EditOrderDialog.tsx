@@ -16,7 +16,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
     <>
       {editing && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 p-3 backdrop-blur-[2px] sm:p-6"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-[#16804f]/40 p-3 backdrop-blur-[2px] sm:p-6"
           onClick={() => setEditing(null)}
         >
           <form
@@ -29,7 +29,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                 <p className="text-[10px] font-bold text-blue-600">
                   تعديل مختصر
                 </p>
-                <h2 className="mt-1 text-lg font-black">بيانات الطلب</h2>
+                <h2 className="mt-1 text-lg font-bold">بيانات الطلب</h2>
               </div>
               <button
                 type="button"
@@ -39,18 +39,18 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <label className="block text-xs font-black text-slate-500">
+            <label className="block text-xs font-bold text-slate-500">
               الاسم
               <input
                 value={editForm.fullName}
                 onChange={event =>
                   setEditForm({ ...editForm, fullName: event.target.value })
                 }
-                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"
+                className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-sm font-bold"
               />
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <label className="block text-xs font-black text-slate-500">
+              <label className="block text-xs font-bold text-slate-500">
                 سعر المنتج
                 <input
                   required
@@ -60,11 +60,11 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                   onChange={event =>
                     setEditForm({ ...editForm, price: event.target.value })
                   }
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"
+                  className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-sm font-bold"
                   dir="ltr"
                 />
               </label>
-              <label className="block text-xs font-black text-slate-500">
+              <label className="block text-xs font-bold text-slate-500">
                 التوصيل
                 <input
                   required
@@ -77,12 +77,12 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                       deliveryFee: event.target.value,
                     })
                   }
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"
+                  className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-sm font-bold"
                   dir="ltr"
                 />
               </label>
             </div>
-            <label className="block text-xs font-black text-slate-500">
+            <label className="block text-xs font-bold text-slate-500">
               الهاتف
               <input
                 required
@@ -90,12 +90,12 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                 onChange={event =>
                   setEditForm({ ...editForm, phone: event.target.value })
                 }
-                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"
+                className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-sm font-bold"
                 dir="ltr"
               />
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <label className="block text-xs font-black text-slate-500">
+              <label className="block text-xs font-bold text-slate-500">
                 الولاية
                 <select
                   required
@@ -125,7 +125,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                       )
                       .catch(() => setEditCommunes([]));
                   }}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold"
+                  className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-2 py-3 text-xs font-bold"
                 >
                   <option value="">اختر الولاية</option>
                   {WILAYAS.map(item => (
@@ -135,7 +135,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                   ))}
                 </select>
               </label>
-              <label className="block text-xs font-black text-slate-500">
+              <label className="block text-xs font-bold text-slate-500">
                 البلدية
                 <select
                   required
@@ -144,7 +144,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
                     setEditForm({ ...editForm, commune: event.target.value })
                   }
                   disabled={!editForm.wilaya || editCommunes.length === 0}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold"
+                  className="mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-2 py-3 text-xs font-bold"
                 >
                   <option value="">
                     {editCommunes.length
@@ -163,7 +163,7 @@ export function EditOrderDialog({ context }: { context: DashboardContext }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 rounded-xl bg-slate-950 px-3 py-3 text-sm font-black text-white disabled:opacity-60"
+                className="flex-1 rounded-xl bg-[#16804f] px-3 py-3 text-sm font-bold text-white disabled:opacity-60"
               >
                 حفظ التعديل
               </button>

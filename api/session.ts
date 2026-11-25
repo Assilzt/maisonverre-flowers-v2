@@ -3,12 +3,8 @@ import {
   secureEqual,
   verifySession,
 } from "../backend/auth/session.js";
-import {
-  getBody,
-  headerValue,
-  Request,
-  Response,
-} from "../backend/repositories/index.js";
+import { getBody, headerValue } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 import {
   consumeBudget,
   RateLimitError,

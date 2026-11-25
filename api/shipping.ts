@@ -1,15 +1,12 @@
 import {
-  isAdmin,
-  getBody,
-  queryValue,
   rowById,
   loadEcoSettings,
   recordEvent,
   sql,
   cancelLocalShipment,
-  Request,
-  Response,
 } from "../backend/repositories/index.js";
+import { isAdmin, getBody, queryValue } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 import {
   carrierAction,
   carrierLabel,

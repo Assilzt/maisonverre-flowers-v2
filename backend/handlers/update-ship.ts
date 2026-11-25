@@ -1,8 +1,6 @@
 import { UncertainShipmentError } from "../integrations/ecotrack/parcels.js";
 import {
   sql,
-  Request,
-  Response,
   selectColumns,
   loadEcoSettings,
   rowById,
@@ -10,8 +8,9 @@ import {
   reserveStockUnits,
   releaseStockUnits,
   recordEvent,
-  shippingModeFromBody,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
+import { shippingModeFromBody } from "../services/shipping-input.js";
 import {
   createEcoTrackNonStockParcel,
   createEcoTrackStockParcel,

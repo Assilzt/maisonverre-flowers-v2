@@ -1,4 +1,5 @@
-import { Request, Response, loadEcoSettings } from "../repositories/index.js";
+import { loadEcoSettings } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { deliveryFees } from "../services/delivery-fees.js";
 export async function fees(
   _request: Request,

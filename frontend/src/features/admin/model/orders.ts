@@ -1,3 +1,4 @@
+import { toast } from "../ui/store";
 import type {
   OrderStatus,
   Order,
@@ -139,6 +140,14 @@ export function createOrderActions(
     setStatus("all");
     openOrder(next);
   };
+  const CONTACT_TEXT: Record<string, string> = {
+    confirmed: "تم تأكيد الطلب",
+    no_answer: "سُجّل: لم يرد",
+    busy: "سُجّل: مشغول",
+    call_later: "سُجّل: الاتصال لاحقًا",
+    wrong_number: "أُلغي الطلب: رقم خاطئ",
+    refused: "أُلغي الطلب: رفض العميل",
+  };
   const recordContact = async (order: Order, result: string) => {
     setContactBusy(true);
     setError("");
@@ -154,18 +163,31 @@ export function createOrderActions(
       setOrders(current =>
         current.map(item => (item.id === order.id ? data.order : item))
       );
+      // Confirming or cancelling can be undone with one tap.
+      const undoable = ["confirmed", "wrong_number", "refused"].includes(
+        result
+      );
+      toast(CONTACT_TEXT[result] || "تم التسجيل", {
+        tone: result === "confirmed" ? "success" : undoable ? "error" : "info",
+        undo: undoable
+          ? () => void changeStatus(data.order, "complete", true)
+          : undefined,
+      });
       const eventsResponse = await fetch(
         `/api/orders?resource=events&orderId=${order.id}`,
         { headers: authHeaders() }
       );
       const eventsData = await eventsResponse.json().catch(() => ({}));
       setOrderEvents(eventsData.events || []);
+      return true;
     } catch (requestError) {
-      setError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : "تعذر تسجيل نتيجة الاتصال"
-      );
+          : "تعذر تسجيل نتيجة الاتصال";
+      setError(message);
+      toast(message, { tone: "error" });
+      return false;
     } finally {
       setContactBusy(false);
     }
@@ -173,8 +195,9 @@ export function createOrderActions(
   /** One step in the order flow: confirm, cancel, back to review, reopen. */
   const changeStatus = async (
     order: Order,
-    status: "confirmed" | "cancelled" | "complete"
-  ) => {
+    status: "confirmed" | "cancelled" | "complete",
+    silent = false
+  ): Promise<boolean> => {
     setContactBusy(true);
     setError("");
     try {
@@ -188,18 +211,35 @@ export function createOrderActions(
       setOrders(current =>
         current.map(item => (item.id === order.id ? data.order : item))
       );
+      if (silent) toast("تم التراجع", { tone: "info" });
+      else if (status === "cancelled")
+        toast("تم إلغاء الطلب", {
+          tone: "error",
+          undo: () => void changeStatus(data.order, "complete", true),
+        });
+      else if (status === "complete")
+        toast(
+          order.status === "cancelled"
+            ? "أُعيد فتح الطلب"
+            : "أُعيد الطلب للمراجعة",
+          { tone: "info" }
+        );
+      else toast("تم تأكيد الطلب");
       const eventsResponse = await fetch(
         `/api/orders?resource=events&orderId=${order.id}`,
         { headers: authHeaders() }
       );
       const eventsData = await eventsResponse.json().catch(() => ({}));
       setOrderEvents(eventsData.events || []);
+      return true;
     } catch (requestError) {
-      setError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : "تعذر تغيير حالة الطلب"
-      );
+          : "تعذر تغيير حالة الطلب";
+      setError(message);
+      toast(message, { tone: "error" });
+      return false;
     } finally {
       setContactBusy(false);
     }

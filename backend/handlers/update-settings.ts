@@ -6,9 +6,8 @@ import {
   loadCapiSettings,
   invalidateCapiSettings,
   publicProviders,
-  type Request,
-  type Response,
 } from "../repositories/index.js";
+import type { Request, Response } from "../http/contracts.js";
 import { invalidateFeeCache } from "../services/delivery-fees.js";
 import { purgeCache, STOREFRONT_CACHE_TAG } from "../services/cache-tags.js";
 import { validateOsenConnection } from "../integrations/osen/connection.js";

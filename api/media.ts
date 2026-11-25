@@ -1,11 +1,6 @@
 import { readMedia, saveMedia } from "../backend/services/media.js";
-import {
-  getBody,
-  isAdmin,
-  queryValue,
-  type Request,
-  type Response,
-} from "../backend/repositories/index.js";
+import { getBody, isAdmin, queryValue } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 
 /** GET serves an uploaded image; POST (admin only) uploads one. */
 export default async function media(request: Request, response: Response) {

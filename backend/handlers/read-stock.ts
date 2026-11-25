@@ -1,12 +1,6 @@
-import {
-  sql,
-  Request,
-  Response,
-  StockProduct,
-  isAdmin,
-  queryValue,
-  loadEcoSettings,
-} from "../repositories/index.js";
+import { sql, StockProduct, loadEcoSettings } from "../repositories/index.js";
+import { isAdmin, queryValue } from "../http/request.js";
+import type { Request, Response } from "../http/contracts.js";
 import { fetchEcoTrackProducts } from "../integrations/ecotrack/client.js";
 
 export async function stock(

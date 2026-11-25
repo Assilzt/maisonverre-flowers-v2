@@ -1,9 +1,6 @@
-import {
-  Request,
-  Response,
-  requireDatabase,
-  getBody,
-} from "../repositories/index.js";
+import { requireDatabase } from "../repositories/index.js";
+import { getBody } from "./request.js";
+import type { Request, Response } from "./contracts.js";
 import { readOrders } from "../handlers/read.js";
 import { updateOrders } from "../handlers/update.js";
 import { createOrder } from "../handlers/create.js";

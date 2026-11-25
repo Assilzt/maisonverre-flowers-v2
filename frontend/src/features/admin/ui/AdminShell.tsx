@@ -83,9 +83,8 @@ export function AdminShell({
       </a>
       <header className="legacy-header">
         <div className="legacy-heading">
-          <p>MAISONVERRE / OPERATIONS</p>
-          <h1>إدارة المتجر</h1>
-          <span>الطلب، الشحنة، والتحصيل — حالات واضحة ومستقلة</span>
+          <h1>MaisonVerre</h1>
+          <span>إدارة المتجر</span>
         </div>
         <div className="legacy-quick-actions">
           <a href="/" target="_blank" rel="noreferrer">

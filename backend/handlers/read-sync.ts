@@ -1,10 +1,6 @@
-import {
-  Request,
-  Response,
-  isAdmin,
-  isCron,
-  loadEcoSettings,
-} from "../repositories/index.js";
+import { loadEcoSettings } from "../repositories/index.js";
+import { isAdmin, isCron } from "../http/request.js";
+import type { Request, Response } from "../http/contracts.js";
 import { syncShipments } from "../services/shipment-sync.js";
 export async function sync(
   request: Request,

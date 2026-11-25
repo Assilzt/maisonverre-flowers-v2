@@ -1,12 +1,6 @@
-import {
-  sql,
-  isAdmin,
-  isCron,
-  Request,
-  Response,
-  loadEcoSettings,
-  getBody,
-} from "../backend/repositories/index.js";
+import { sql, loadEcoSettings } from "../backend/repositories/index.js";
+import { isAdmin, isCron, getBody } from "../backend/http/request.js";
+import type { Request, Response } from "../backend/http/contracts.js";
 import { flushNotifications } from "../backend/jobs/notifications.js";
 import { capiSummary, cleanupCapi, flushCapi } from "../backend/jobs/capi.js";
 import { syncShipments } from "../backend/services/shipment-sync.js";

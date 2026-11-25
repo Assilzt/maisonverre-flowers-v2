@@ -8,11 +8,11 @@ type Queue = {
 };
 
 const input =
-  "mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-left text-sm font-bold tracking-wide outline-none focus:border-blue-400 focus:bg-white";
+  "mt-1.5 w-full rounded-xl border-0 bg-[rgba(118,118,128,.12)] px-3 py-3 text-left text-sm font-bold tracking-wide outline-none focus:border-blue-400 focus:bg-white";
 const primary =
-  "self-end rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:opacity-60";
+  "self-end rounded-xl bg-[#16804f] px-5 py-3 text-sm font-bold text-white hover:bg-[#11673f] disabled:opacity-60";
 const secondary =
-  "self-end rounded-xl bg-white px-5 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 disabled:opacity-60";
+  "self-end rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)] disabled:opacity-60";
 
 /** Conversions API token and Test Events code. The token is write-only. */
 export function MetaCapiSettings() {
@@ -75,10 +75,10 @@ export function MetaCapiSettings() {
   const counts = queue.counts || {};
   const failed = counts.failed || 0;
   return (
-    <div className="mb-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <div className="mb-5 rounded-[18px] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,.04),0_6px_20px_rgba(0,0,0,.04)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-black text-slate-950">
+          <h3 className="text-base font-bold text-slate-950">
             Meta Conversions API
           </h3>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
@@ -87,7 +87,7 @@ export function MetaCapiSettings() {
           </p>
         </div>
         <span
-          className={`rounded-full px-3 py-1.5 text-xs font-black ${status.capiConfigured ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}
+          className={`rounded-full px-3 py-1.5 text-xs font-bold ${status.capiConfigured ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}
         >
           {status.capiConfigured ? "مفعّل" : "غير مفعّل"}
         </span>
@@ -101,7 +101,7 @@ export function MetaCapiSettings() {
             void save({ capiToken: token.trim() }, "تم حفظ الرمز.");
         }}
       >
-        <label className="flex-1 text-xs font-black text-slate-500">
+        <label className="flex-1 text-xs font-bold text-slate-500">
           Access token
           <input
             type="password"
@@ -155,7 +155,7 @@ export function MetaCapiSettings() {
           );
         }}
       >
-        <label className="flex-1 text-xs font-black text-slate-500">
+        <label className="flex-1 text-xs font-bold text-slate-500">
           Test Events code
           <input
             dir="ltr"
