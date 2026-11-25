@@ -190,3 +190,22 @@ it("uses fees embedded in the page before any API call returns", async () => {
   expect(checkout.deliveryFeesStatus).toBe("ready");
   expect(checkout.lowestDeliveryFee).toBe(350);
 });
+it("sends the same event ids as the server's Conversions API", async () => {
+  await act(async () => checkout.setPhone("0551234567"));
+  await act(async () => vi.advanceTimersByTimeAsync(700));
+  const draft = vi
+    .mocked(fetch)
+    .mock.calls.map(([, init]) => JSON.parse(String(init?.body || "{}")))
+    .find(body => body.status === "abandoned");
+  const lead = mocks.pixel.mock.calls.find(call => call[1] === "Lead");
+  expect(lead?.[3]).toBe("lead." + draft.leadId);
+  await act(async () => {
+    checkout.setWilaya("05 - باتنة");
+  });
+  await act(async () => checkout.setCommune("Batna"));
+  await act(async () =>
+    checkout.handleSubmit({ preventDefault() {} } as never)
+  );
+  const purchase = mocks.pixel.mock.calls.find(call => call[1] === "Purchase");
+  expect(purchase?.[3]).toBe("purchase." + draft.leadId);
+});

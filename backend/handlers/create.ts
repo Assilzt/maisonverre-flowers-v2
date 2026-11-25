@@ -3,12 +3,28 @@ import {
   Request,
   Response,
   loadEcoSettings,
+  loadCapiSettings,
+  type CapiSettings,
 } from "../repositories/index.js";
 import { publishedPage } from "../services/pages.js";
 import { validateOrderInput, tokenHash } from "../services/order-input.js";
 import { deliveryFees } from "../services/delivery-fees.js";
 import { consumeBudget } from "../services/rate-limit.js";
 import { scheduleNotifications } from "../jobs/notifications.js";
+import { enqueueCapiEvent, scheduleCapi } from "../jobs/capi.js";
+import { readMetaContext } from "../integrations/meta/capi.js";
+
+const VALID_PHONE = /^(?:0[5-7]\d{8}|\+?213[5-7]\d{8})$/;
+
+/** Tracking must never cost an order: any CAPI problem only disables it. */
+const capiSettings = async (): Promise<CapiSettings | null> => {
+  try {
+    const settings = await loadCapiSettings();
+    return settings.enabled ? settings : null;
+  } catch {
+    return null;
+  }
+};
 
 export async function createOrder(
   request: Request,
@@ -81,11 +97,14 @@ export async function createOrder(
     deliveryFee: fee,
     deliveryType,
   });
+  // The customer's browser context, kept for later confirmed/delivered events.
+  const capi = await capiSettings();
+  const metaContext = capi ? readMetaContext(request, source) : null;
   // One SQL statement commits the order and durable notification intent together.
   const rows = await sql!`WITH saved AS (
-  INSERT INTO atlasio_orders(lead_id,status,campaign,price,quantity,delivery_fee,delivery_type,phone,full_name,wilaya,commune,source_url,gift_booklet,product_slug,order_snapshot,lead_token_hash)
-  VALUES(${leadId},${status},${campaign},${price},${quantity},${fee},${deliveryType},${phone},${name || null},${wilaya || null},${commune || null},${source || null},FALSE,${page.slug},${snapshot}::jsonb,${hash})
-  ON CONFLICT(lead_id) DO UPDATE SET status=EXCLUDED.status,campaign=EXCLUDED.campaign,price=EXCLUDED.price,quantity=EXCLUDED.quantity,delivery_fee=EXCLUDED.delivery_fee,delivery_type=EXCLUDED.delivery_type,phone=EXCLUDED.phone,full_name=EXCLUDED.full_name,wilaya=EXCLUDED.wilaya,commune=EXCLUDED.commune,source_url=EXCLUDED.source_url,order_snapshot=EXCLUDED.order_snapshot,updated_at=NOW()
+  INSERT INTO atlasio_orders(lead_id,status,campaign,price,quantity,delivery_fee,delivery_type,phone,full_name,wilaya,commune,source_url,gift_booklet,product_slug,order_snapshot,lead_token_hash,meta_context)
+  VALUES(${leadId},${status},${campaign},${price},${quantity},${fee},${deliveryType},${phone},${name || null},${wilaya || null},${commune || null},${source || null},FALSE,${page.slug},${snapshot}::jsonb,${hash},${metaContext ? JSON.stringify(metaContext) : null}::jsonb)
+  ON CONFLICT(lead_id) DO UPDATE SET status=EXCLUDED.status,campaign=EXCLUDED.campaign,price=EXCLUDED.price,quantity=EXCLUDED.quantity,delivery_fee=EXCLUDED.delivery_fee,delivery_type=EXCLUDED.delivery_type,phone=EXCLUDED.phone,full_name=EXCLUDED.full_name,wilaya=EXCLUDED.wilaya,commune=EXCLUDED.commune,source_url=EXCLUDED.source_url,order_snapshot=EXCLUDED.order_snapshot,meta_context=COALESCE(EXCLUDED.meta_context,atlasio_orders.meta_context),updated_at=NOW()
   WHERE atlasio_orders.lead_token_hash=EXCLUDED.lead_token_hash AND atlasio_orders.status IN ('abandoned','complete') AND NOT(atlasio_orders.status='complete' AND EXCLUDED.status='abandoned')
   RETURNING id,lead_id,status
  ), queued AS (
@@ -103,5 +122,31 @@ export async function createOrder(
     return;
   }
   scheduleNotifications();
+  if (capi) {
+    try {
+      const order = {
+        id: rows[0].id,
+        lead_id: leadId,
+        phone,
+        full_name: name,
+        wilaya,
+        commune,
+        price,
+        quantity,
+        order_snapshot: snapshot,
+      };
+      // Same event ids as the browser Pixel, so Meta keeps one copy of each.
+      if (VALID_PHONE.test(phone.replace(/\s/g, "")))
+        await enqueueCapiEvent("Lead", order, metaContext, capi);
+      if (complete)
+        await enqueueCapiEvent("Purchase", order, metaContext, capi);
+      scheduleCapi();
+    } catch (error) {
+      console.error(
+        "CAPI enqueue",
+        error instanceof Error ? error.message : "unknown"
+      );
+    }
+  }
   response.status(200).json({ order: rows[0] });
 }

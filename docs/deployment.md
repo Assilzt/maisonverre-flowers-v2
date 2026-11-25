@@ -12,6 +12,16 @@
 
    لتحديث حالات الشحن وTelegram كل عدة دقائق، استخدم Scheduler خارجيًا يرسل `GET` إلى `/api/jobs` مع `Authorization: Bearer <CRON_SECRET>`، أو رقِّ مشروع Vercel إلى Pro ثم بدّل الجدول إلى `*/5 * * * *`. لا تضف `CRON_SECRET` إلى رابط عام أو إلى Git.
 
+## Meta Conversions API
+
+1. في Events Manager افتح Pixel ← **Settings** ← **Conversions API** ← **Generate access token**.
+2. في الإدارة: **الإعدادات ← Meta Pixel ← Conversions API**، الصق الرمز واحفظ. لا يُعرض بعد الحفظ.
+3. للاختبار انسخ **Test Events code** من تبويب Test Events والصقه في حقل رمز الاختبار، ثم أنشئ طلبًا تجريبيًا وسجّله «مؤكد».
+4. يجب أن يظهر Lead وPurchase بعلامة **Browser + Server** ومحتسبة مرة واحدة، و`OrderConfirmed` من Server.
+5. احذف رمز الاختبار بعد التأكد، وراقب Event Match Quality.
+
+أحداث التسليم والإرجاع تُرسل بعد مزامنة الشحن، لذلك يعتمد توقيتها على Scheduler أعلاه.
+
 ## Acceptance checks before cutover
 
 - افتح الزهور على الهاتف والكمبيوتر وقارن تصميمها بالأصل.

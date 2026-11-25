@@ -1,6 +1,7 @@
 import { InventoryTools } from "../InventoryTools";
 import { Loader2, RefreshCw, Settings, X } from "lucide-react";
 import type { DashboardContext } from "../useDashboard";
+import { MetaCapiSettings } from "./MetaCapiSettings";
 export function SettingsDialog({ context }: { context: DashboardContext }) {
   const {
     loadSettings,
@@ -124,6 +125,7 @@ export function SettingsDialog({ context }: { context: DashboardContext }) {
                 </p>
               )}
             </div>
+            <MetaCapiSettings />
             <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
               <div>
                 <div className="mb-3 flex items-center justify-between">

@@ -6,6 +6,7 @@ import {
   loadEcoSettings,
   publicProviders,
 } from "../repositories/index.js";
+import { capiStatus } from "./update-settings.js";
 export async function settings(
   request: Request,
   response: Response,
@@ -24,6 +25,7 @@ export async function settings(
     deliveryFees: ecoSettings.deliveryFees,
     shippingMode: ecoSettings.shippingMode,
     pixelId: await loadMetaPixelId(),
+    ...(await capiStatus()),
   });
   return;
 }

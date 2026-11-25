@@ -19,6 +19,38 @@ export const loadMetaPixelId = async () => {
   return String(rows[0]?.value || "").trim();
 };
 
+export type CapiSettings = {
+  pixelId: string;
+  token: string;
+  testEventCode: string;
+  enabled: boolean;
+};
+let capiCache: { expires: number; value: CapiSettings } | null = null;
+export const invalidateCapiSettings = () => {
+  capiCache = null;
+};
+/** Conversions API settings. Server-only: the token never leaves the server. */
+export const loadCapiSettings = async (): Promise<CapiSettings> => {
+  if (capiCache && capiCache.expires > Date.now()) return capiCache.value;
+  const rows =
+    (await sql!`SELECT key, value FROM atlasio_settings WHERE key IN ('meta_pixel_id', 'meta_capi_token', 'meta_test_event_code')`) as Array<{
+      key: string;
+      value: string;
+    }>;
+  const value = (key: string) =>
+    String(rows.find(row => row.key === key)?.value || "").trim();
+  const pixelId = value("meta_pixel_id"),
+    token = value("meta_capi_token");
+  const settings = {
+    pixelId,
+    token,
+    testEventCode: value("meta_test_event_code"),
+    enabled: /^\d{8,20}$/.test(pixelId) && Boolean(token),
+  };
+  capiCache = { expires: Date.now() + 30_000, value: settings };
+  return settings;
+};
+
 export const loadEcoSettings = async (providerId?: string) => {
   const rows =
     (await sql!`SELECT key, value FROM atlasio_settings WHERE key IN ('ecotrack_provider', 'ecotrack_token', 'delivery_fees', 'shipping_providers', 'active_provider_id', 'shipping_mode')`) as Array<{

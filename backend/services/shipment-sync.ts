@@ -13,6 +13,29 @@ import {
   fetchEcoTrackUpdates,
 } from "../integrations/ecotrack/client.js";
 import { shippingStatus } from "../../shared/shipping-status.js";
+import { enqueueStatusEvent } from "../jobs/capi.js";
+
+/** Meta events for a parcel reaching a final state for the first time. */
+async function trackFinalStatus(
+  order: { id: number; status: string },
+  terminal: string | null
+) {
+  if (!terminal || order.status === terminal || order.status === "trashed")
+    return;
+  try {
+    if (terminal === "delivered")
+      await enqueueStatusEvent("OrderDelivered", order.id);
+    if (terminal === "returned")
+      await enqueueStatusEvent("OrderReturned", order.id);
+    // The saved browser context is no longer needed.
+    await sql!`UPDATE atlasio_orders SET meta_context=NULL WHERE id=${order.id}`;
+  } catch (error) {
+    console.error(
+      "CAPI status event",
+      error instanceof Error ? error.message : "unknown"
+    );
+  }
+}
 export async function persistTracking(
   order: NonNullable<Awaited<ReturnType<typeof rowById>>>,
   detail: Record<string, unknown>
@@ -59,6 +82,7 @@ export async function persistTracking(
     await sql!`UPDATE atlasio_orders SET ecotrack_last_synced_at=NOW(),sync_attempt_at=NOW(),ecotrack_sync_error=NULL WHERE id=${order.id}`;
     return;
   }
+  await trackFinalStatus(order, terminal);
   if (order.ecotrack_status !== raw)
     await recordEvent(
       order.id,

@@ -3,6 +3,8 @@ import {
   sql,
   loadEcoSettings,
   loadMetaPixelId,
+  loadCapiSettings,
+  invalidateCapiSettings,
   publicProviders,
   type Request,
   type Response,
@@ -36,6 +38,14 @@ const providerSchema = z.object({
   token: z.string().max(2000).optional(),
   deliveryFees: feeSchema.optional(),
 });
+/** Public CAPI status for the dashboard: never the token itself. */
+export async function capiStatus() {
+  const capi = await loadCapiSettings();
+  return {
+    capiConfigured: Boolean(capi.token),
+    testEventCode: capi.testEventCode,
+  };
+}
 export async function updateSettings(
   _request: Request,
   response: Response,
@@ -48,6 +58,19 @@ export async function updateSettings(
       const id = String(body.pixelId || "").trim();
       if (id && !/^\d{8,20}$/.test(id)) throw new Error("Pixel ID غير صالح");
       updates.push({ key: "meta_pixel_id", value: id });
+    }
+    if (Object.hasOwn(body, "capiToken")) {
+      // Write-only secret: an empty value removes it.
+      const token = String(body.capiToken || "").trim();
+      if (token && !/^[A-Za-z0-9_\-.|]{20,1000}$/.test(token))
+        throw new Error("رمز Conversions API غير صالح");
+      updates.push({ key: "meta_capi_token", value: token });
+    }
+    if (Object.hasOwn(body, "testEventCode")) {
+      const code = String(body.testEventCode || "").trim();
+      if (code && !/^[A-Za-z0-9]{1,40}$/.test(code))
+        throw new Error("رمز Test Events غير صالح");
+      updates.push({ key: "meta_test_event_code", value: code });
     }
     if (Object.hasOwn(body, "shippingMode")) {
       const mode = z.enum(["stock", "without_stock"]).parse(body.shippingMode);
@@ -125,6 +148,7 @@ export async function updateSettings(
       )
     );
     invalidateFeeCache();
+    invalidateCapiSettings();
     await purgeCache(STOREFRONT_CACHE_TAG);
     const current = await loadEcoSettings();
     response.status(200).json({
@@ -136,6 +160,7 @@ export async function updateSettings(
       deliveryFees: current.deliveryFees,
       shippingMode: current.shippingMode,
       pixelId: await loadMetaPixelId(),
+      ...(await capiStatus()),
     });
   } catch (e) {
     response

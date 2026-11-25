@@ -3,6 +3,7 @@ import { Plus, ShieldCheck } from "lucide-react";
 import type { DashboardContext } from "../useDashboard";
 import { InventoryTools } from "../InventoryTools";
 import { OperationsPanel } from "../OperationsPanel";
+import { MetaCapiSettings } from "./MetaCapiSettings";
 import { api, updateOrder } from "@/services/api";
 export function SettingsWorkspace({
   context: c,
@@ -353,6 +354,7 @@ export function SettingsWorkspace({
               </p>
             )}
           </form>
+          <MetaCapiSettings />
         </section>
       )}
       {tab === "operations" && <OperationsPanel />}

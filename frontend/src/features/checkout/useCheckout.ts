@@ -105,14 +105,16 @@ const fireFacebookEventOnce = (
   product: ProductLandingConfig,
   eventName: string,
   dedupeKey: string,
-  parameters: Record<string, unknown> = {}
+  parameters: Record<string, unknown> = {},
+  eventId?: string
 ) => {
   if (new URLSearchParams(window.location.search).get("preview") === "1")
     return;
   trackMetaPixelEventOnce(
     getPixelStorageKey(product, dedupeKey),
     eventName,
-    parameters
+    parameters,
+    eventId
   );
 };
 
@@ -375,10 +377,14 @@ export function useCheckout(
       !submitted
     ) {
       facebookLeadSentRef.current = true;
-      fireFacebookEventOnce(product, "Lead", `lead:${trimmedPhone}`, {
-        ...productEventData,
-        lead_source: "valid_phone",
-      });
+      // Same id as the server's Conversions API Lead for this draft.
+      fireFacebookEventOnce(
+        product,
+        "Lead",
+        `lead:${trimmedPhone}`,
+        { ...productEventData, lead_source: "valid_phone" },
+        `lead.${getActiveDraftLeadId()}`
+      );
     }
 
     if (!PHONE_PATTERN.test(trimmedPhone)) {
@@ -536,7 +542,8 @@ export function useCheckout(
       product,
       "Purchase",
       `purchase:${leadId}`,
-      getProductPurchaseEventData(product, offerPrice)
+      getProductPurchaseEventData(product, offerPrice),
+      `purchase.${leadId}`
     );
     setLastOrder({
       bundleLabel: selectedBundle?.label || product.name,

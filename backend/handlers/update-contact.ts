@@ -7,6 +7,7 @@ import {
   rowById,
   recordEvent,
 } from "../repositories/index.js";
+import { enqueueStatusEvent } from "../jobs/capi.js";
 export async function updateContact(
   request: Request,
   response: Response,
@@ -73,6 +74,17 @@ export async function updateContact(
       order.status,
       "confirmed"
     );
+  try {
+    if (result === "confirmed" && order.confirmation_status !== "confirmed")
+      await enqueueStatusEvent("OrderConfirmed", orderId);
+    if (nextOrderStatus === "cancelled")
+      await sql!`UPDATE atlasio_orders SET meta_context=NULL WHERE id=${orderId}`;
+  } catch (error) {
+    console.error(
+      "CAPI status event",
+      error instanceof Error ? error.message : "unknown"
+    );
+  }
   response.status(200).json({
     order: updated[0],
     message:

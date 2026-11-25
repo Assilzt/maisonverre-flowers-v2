@@ -3,7 +3,7 @@ import { sql } from "../repositories/connection.js";
 import { deliverTelegram } from "../integrations/telegram/client.js";
 export function notificationText(order: Record<string, unknown>) {
   const complete = order.status !== "abandoned";
-  return `${complete ? "✅ طلب مكتمل" : "🟡 طلب غير مكتمل"}\n🆔 رقم المتابعة: ${order.lead_id}\n🏷️ الحملة: ${order.campaign}\n💰 السعر: ${order.price} دج\n📦 العدد: ${order.quantity}\n🚚 التوصيل: ${order.delivery_fee} دج\n👤 الاسم: ${order.full_name || "لم يُحدد بعد"}\n📍 الولاية: ${order.wilaya || "لم تُحدد بعد"}\n🏘️ البلدية: ${order.commune || "لم تُحدد بعد"}\n📞 الهاتف: ${order.phone}\n${complete ? "✅ جاهز للتأكيد الهاتفي" : "⏳ تُحدّث هذه الرسالة أثناء تعبئة النموذج"}`;
+  return `${complete ? "✅ طلب مكتمل" : "🟡 طلب غير مكتمل"}\n🆔 رقم المتابعة: ${order.lead_id}\n🏷️ الحملة: ${order.campaign}\n💰 السعر: ${order.price} دج\n📦 العدد: ${order.quantity}\n🚚 التوصيل: ${order.delivery_fee} دج — ${order.delivery_type === "stop_desk" ? "مكتب الشحن" : "إلى المنزل"}\n👤 الاسم: ${order.full_name || "لم يُحدد بعد"}\n📍 الولاية: ${order.wilaya || "لم تُحدد بعد"}\n🏘️ البلدية: ${order.commune || "لم تُحدد بعد"}\n📞 الهاتف: ${order.phone}\n${complete ? "✅ جاهز للتأكيد الهاتفي" : "⏳ تُحدّث هذه الرسالة أثناء تعبئة النموذج"}`;
 }
 export async function flushNotifications(limit = 3) {
   if (!sql) return { sent: 0, failed: 0 };

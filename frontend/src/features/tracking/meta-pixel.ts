@@ -12,6 +12,8 @@ type PendingPixelEvent = {
   name: string;
   parameters: Record<string, unknown>;
   dedupeKey?: string;
+  /** Shared with the server's Conversions API event so Meta keeps one copy. */
+  eventId?: string;
 };
 
 declare global {
@@ -89,7 +91,11 @@ const sendEvent = (event: PendingPixelEvent) => {
       // Pixel storage is optional and must never block the event or the order flow.
     }
   }
-  window.fbq("track", event.name, event.parameters);
+  if (event.eventId)
+    window.fbq("track", event.name, event.parameters, {
+      eventID: event.eventId,
+    });
+  else window.fbq("track", event.name, event.parameters);
 };
 
 const afterPageLoad = () =>
@@ -160,14 +166,15 @@ export const trackMetaPixelEvent = (
 export const trackMetaPixelEventOnce = (
   dedupeKey: string,
   eventName: string,
-  parameters: Record<string, unknown> = {}
+  parameters: Record<string, unknown> = {},
+  eventId?: string
 ) => {
   if (initialized) {
-    sendEvent({ name: eventName, parameters, dedupeKey });
+    sendEvent({ name: eventName, parameters, dedupeKey, eventId });
     return;
   }
   if (disabled || pendingDedupeKeys.has(dedupeKey)) return;
   pendingDedupeKeys.add(dedupeKey);
-  pendingEvents.push({ name: eventName, parameters, dedupeKey });
+  pendingEvents.push({ name: eventName, parameters, dedupeKey, eventId });
   void initializeMetaPixel();
 };
