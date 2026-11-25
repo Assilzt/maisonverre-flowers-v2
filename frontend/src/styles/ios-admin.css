@@ -1,0 +1,169 @@
+/*
+ * The products editor and other screens built on AdminShell, restyled to the
+ * same iOS look as the orders dashboard (tokens match ops.css).
+ */
+.admin-app.legacy-dashboard {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --label: #1c1c1e;
+  --label-2: rgba(60, 60, 67, 0.68);
+  --fill: rgba(118, 118, 128, 0.12);
+  --tint: #16804f;
+  --tint-soft: rgba(22, 128, 79, 0.12);
+  --ink: var(--label);
+  --muted: var(--label-2);
+  --line: rgba(60, 60, 67, 0.14);
+  --accent: var(--tint);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.04);
+  background: var(--bg);
+  color: var(--label);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic",
+    "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+}
+.admin-app.legacy-dashboard .legacy-header {
+  border: 0;
+  background: rgba(242, 242, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.admin-app.legacy-dashboard .legacy-tabs {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fill);
+}
+.admin-app.legacy-dashboard .legacy-tabs a {
+  border: 0;
+  border-radius: 9px;
+  color: var(--label);
+  font-weight: 500;
+}
+.admin-app.legacy-dashboard .legacy-tabs a.active {
+  background: var(--card);
+  color: var(--label);
+  font-weight: 600;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 3px 1px rgba(0, 0, 0, 0.04);
+}
+.admin-app.legacy-dashboard .legacy-tabs a.active::after {
+  display: none;
+}
+.admin-app.legacy-dashboard .page-heading h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.admin-app.legacy-dashboard .panel,
+.admin-app.legacy-dashboard .product-card {
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.admin-app.legacy-dashboard .panel-heading h2,
+.admin-app.legacy-dashboard .panel h2 {
+  font-size: 19px;
+  font-weight: 700;
+}
+.admin-app.legacy-dashboard .btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fill);
+  color: var(--label);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: none;
+}
+.admin-app.legacy-dashboard .btn:hover {
+  background: rgba(118, 118, 128, 0.18);
+}
+.admin-app.legacy-dashboard .btn.primary {
+  background: var(--tint);
+  color: #fff;
+}
+.admin-app.legacy-dashboard .btn.primary:hover {
+  background: #11673f;
+}
+.admin-app.legacy-dashboard .btn.small {
+  min-height: 34px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+.admin-app.legacy-dashboard .btn.danger,
+.admin-app.legacy-dashboard .danger {
+  color: #d70015;
+}
+.admin-app.legacy-dashboard .icon-button {
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill);
+}
+.admin-app.legacy-dashboard input:not([type="checkbox"]):not([type="radio"]),
+.admin-app.legacy-dashboard select,
+.admin-app.legacy-dashboard textarea {
+  border: 0;
+  border-radius: 12px;
+  background: var(--fill);
+  color: var(--label);
+  font-size: 16px;
+}
+.admin-app.legacy-dashboard input:focus,
+.admin-app.legacy-dashboard select:focus,
+.admin-app.legacy-dashboard textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(22, 128, 79, 0.25);
+}
+.admin-app.legacy-dashboard label {
+  color: var(--label-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.admin-app.legacy-dashboard input[type="checkbox"] {
+  accent-color: var(--tint);
+}
+.admin-app.legacy-dashboard .notice {
+  border: 0;
+  border-radius: 14px;
+  background: rgba(0, 122, 255, 0.1);
+  color: #0062cc;
+}
+.admin-app.legacy-dashboard .notice.error {
+  background: rgba(255, 59, 48, 0.12);
+  color: #c4171f;
+}
+.admin-app.legacy-dashboard .section-tabs {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fill);
+}
+.admin-app.legacy-dashboard .section-tabs button {
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+}
+.admin-app.legacy-dashboard .section-tabs button.active {
+  background: var(--card);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 3px 1px rgba(0, 0, 0, 0.04);
+}
+.admin-app.legacy-dashboard .section-tabs button.active::after {
+  display: none;
+}
+.admin-app.legacy-dashboard .product-card-image {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.admin-app.legacy-dashboard .collection-item {
+  border: 0;
+  border-radius: 14px;
+  background: #f7f7fa;
+}

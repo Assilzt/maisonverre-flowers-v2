@@ -8,6 +8,7 @@ import {
   recordEvent,
 } from "../repositories/index.js";
 import { enqueueStatusEvent } from "../jobs/capi.js";
+import { canDo, type FlowAction } from "../../shared/order-flow.js";
 export async function updateContact(
   request: Request,
   response: Response,
@@ -42,6 +43,16 @@ export async function updateContact(
   ];
   if (!allowedResults.includes(result)) {
     response.status(400).json({ error: "نتيجة الاتصال غير صالحة" });
+    return;
+  }
+  const step = (result === "confirmed" ? "confirm" : result) as FlowAction;
+  if (result !== "contacted" && !canDo(order, step)) {
+    response.status(409).json({
+      error:
+        result === "confirmed"
+          ? "لا يمكن تأكيد هذا الطلب الآن؛ تأكد من رقم الهاتف وحالة الطلب"
+          : "لا يمكن تسجيل هذه النتيجة في حالة الطلب الحالية",
+    });
     return;
   }
   const nextConfirmation =

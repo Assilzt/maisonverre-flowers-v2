@@ -61,7 +61,7 @@ export async function updateOrders(
 
   const orderId = Number(body.id);
   const status = String(body.status || "");
-  const allowedStatuses = ["confirmed", "cancelled"];
+  const allowedStatuses = ["confirmed", "cancelled", "complete"];
   if (!Number.isInteger(orderId) || !allowedStatuses.includes(status)) {
     response.status(400).json({ error: "بيانات الحالة غير صالحة" });
     return;
@@ -73,16 +73,22 @@ export async function updateOrders(
   }
   if (!canManualTransition(order, status)) {
     response.status(409).json({
-      error: "هذا الانتقال غير مسموح؛ استخدم الإجراء المناسب للحالة الحالية",
+      error: "لا يمكن الانتقال إلى هذه الحالة من الحالة الحالية للطلب",
     });
     return;
   }
   const updated =
-    await sql!`UPDATE atlasio_orders SET status = ${status}, confirmation_status = CASE WHEN ${status} = 'confirmed' THEN 'confirmed' ELSE 'cancelled' END, contact_result = CASE WHEN ${status} = 'cancelled' THEN 'refused' ELSE contact_result END, updated_at = NOW() WHERE id = ${orderId} RETURNING ${sql!.unsafe(selectColumns)}`;
+    await sql!`UPDATE atlasio_orders SET status = ${status}, confirmation_status = CASE WHEN ${status} = 'confirmed' THEN 'confirmed' WHEN ${status} = 'cancelled' THEN 'cancelled' ELSE 'pending' END, contact_result = CASE WHEN ${status} = 'cancelled' THEN 'refused' ELSE contact_result END, updated_at = NOW() WHERE id = ${orderId} RETURNING ${sql!.unsafe(selectColumns)}`;
   await recordEvent(
     orderId,
     "status_changed",
-    `تم تغيير حالة الطلب إلى ${status === "confirmed" ? "مؤكد" : "ملغى"}`,
+    status === "confirmed"
+      ? "تم تأكيد الطلب"
+      : status === "cancelled"
+        ? "تم إلغاء الطلب"
+        : order.status === "cancelled"
+          ? "أُعيد فتح الطلب للمراجعة"
+          : "أُعيد الطلب للمراجعة قبل الشحن",
     order.status,
     status
   );

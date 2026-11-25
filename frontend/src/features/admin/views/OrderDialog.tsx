@@ -1,32 +1,20 @@
 import { useState } from "react";
-import {
-  Phone,
-  MessageCircle,
-  Copy,
-  MoreHorizontal,
-  Pencil,
-  Truck,
-  RefreshCw,
-} from "lucide-react";
+import { Copy, MoreHorizontal, Pencil, Truck, RefreshCw } from "lucide-react";
 import type { DashboardContext } from "../useDashboard";
 import { Dialog } from "../ui/Dialog";
 import { StatusBadge } from "../ui/StatusBadge";
 import { ShippingActions } from "../ShippingActions";
 import { ShippingSetup } from "./ShippingSetup";
 import { EditOrderForm } from "./EditOrderForm";
-import { formatDate, customerSmsMessage } from "../presentation";
+import { formatDate } from "../presentation";
 import { shippingStatus } from "@shared/shipping-status";
-import { canConfirmOrder } from "../ui/order-ui";
+import { canTrash } from "@shared/order-flow";
+import { OrderSheetTop } from "./OrderSheetTop";
 export function OrderDialog({ context: c }: { context: DashboardContext }) {
   const order = c.activeOrder;
   const [tab, setTab] = useState("details");
   const [copied, setCopied] = useState(false);
   if (!order) return null;
-  const canContact =
-    !order.ecotrack_tracking &&
-    ["abandoned", "complete", "not_responding", "confirmed"].includes(
-      order.status
-    );
   const canShip =
     order.status === "confirmed" &&
     !order.ecotrack_tracking &&
@@ -55,13 +43,11 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
       }}
     >
       <div className="dialog-body">
-        <div className="panel-heading">
-          <div>
-            <h2>{order.full_name || "عميل بدون اسم"}</h2>
-            <p className="mono">{order.lead_id}</p>
-          </div>
-          <StatusBadge status={order.status} />
-        </div>
+        <OrderSheetTop
+          order={order}
+          context={c}
+          onShip={() => setTab("shipping")}
+        />
         <div className="section-tabs" aria-label="تفاصيل الطلب">
           {[
             ["details", "العميل والطلب"],
@@ -134,19 +120,8 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
                   </dd>
                 </div>
               </dl>
-              <div className="toolbar detail-section">
-                <a className="btn" href={"tel:" + order.phone}>
-                  <Phone size={15} />
-                  اتصال
-                </a>
-                <a
-                  className="btn"
-                  href={`sms:${order.phone}?body=${encodeURIComponent(customerSmsMessage)}`}
-                >
-                  <MessageCircle size={15} />
-                  SMS
-                </a>
-                {!order.ecotrack_tracking && order.status !== "trashed" && (
+              {!order.ecotrack_tracking && order.status !== "trashed" && (
+                <div className="toolbar detail-section">
                   <button
                     type="button"
                     className="btn"
@@ -155,43 +130,7 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
                     <Pencil size={14} />
                     تعديل البيانات
                   </button>
-                )}
-              </div>
-              {canContact && (
-                <section className="detail-section">
-                  <h3>نتيجة التواصل</h3>
-                  <p className="muted" style={{ marginBottom: 12 }}>
-                    محاولات الاتصال: {order.contact_attempts || 0}
-                  </p>
-                  <div className="toolbar">
-                    {[
-                      ["no_answer", "لم يرد"],
-                      ["busy", "مشغول"],
-                      ["call_later", "الاتصال لاحقًا"],
-                      ["wrong_number", "رقم خاطئ"],
-                      ["refused", "رفض الطلب"],
-                    ].map(([value, label]) => (
-                      <button
-                        type="button"
-                        className="btn small"
-                        disabled={c.contactBusy}
-                        key={value}
-                        onClick={() => {
-                          if (
-                            ["wrong_number", "refused"].includes(value) &&
-                            !window.confirm(
-                              "سيُلغى الطلب بعد تسجيل هذه النتيجة. متابعة؟"
-                            )
-                          )
-                            return;
-                          void c.recordContact(order, value);
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+                </div>
               )}
             </>
           ))}
@@ -376,28 +315,12 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
       </div>
       <footer className="dialog-footer">
         <div>
-          {canContact && order.status !== "confirmed" ? (
+          {canShip && tab === "shipping" ? (
             <button
               type="button"
               className="btn primary"
-              disabled={c.contactBusy || !canConfirmOrder(order)}
-              onClick={() => void c.recordContact(order, "confirmed")}
-            >
-              تأكيد الطلب
-            </button>
-          ) : canShip ? (
-            <button
-              type="button"
-              className="btn primary"
-              disabled={
-                tab === "shipping" &&
-                (c.loading || !ready || !c.selectedProviderId)
-              }
+              disabled={c.loading || !ready || !c.selectedProviderId}
               onClick={() => {
-                if (tab !== "shipping") {
-                  setTab("shipping");
-                  return;
-                }
                 if (window.confirm("إرسال الطلب إلى حساب التوصيل المحدد؟"))
                   void c.runAction(
                     order.id,
@@ -407,7 +330,7 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
               }}
             >
               <Truck size={14} />
-              {tab === "shipping" ? "إرسال للشركة" : "تجهيز الشحن"}
+              إرسال لشركة التوصيل
             </button>
           ) : (
             <button type="button" className="btn" onClick={c.closeOrder}>
@@ -433,7 +356,12 @@ export function OrderDialog({ context: c }: { context: DashboardContext }) {
               <button
                 type="button"
                 className="danger"
-                disabled={c.loading}
+                disabled={c.loading || !canTrash(order)}
+                title={
+                  canTrash(order)
+                    ? undefined
+                    : "ألغِ الشحنة أولاً ثم احذف الطلب"
+                }
                 onClick={() => act("trash")}
               >
                 نقل إلى المحذوفات

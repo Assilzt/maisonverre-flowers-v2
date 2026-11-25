@@ -3,7 +3,7 @@ import { Check, ChevronLeft, Phone, Truck, X } from "lucide-react";
 import type { Order } from "@shared/orders";
 import { shippingStatus } from "@shared/shipping-status";
 import type { DashboardContext } from "../useDashboard";
-import { canConfirmOrder } from "../ui/order-ui";
+import { canDo } from "@shared/order-flow";
 import {
   statusLabels,
   statusTones,
@@ -20,7 +20,7 @@ export function orderStatusView(order: Order): { label: string; tone: Tone } {
         : state.group === "returned"
           ? "red"
           : state.group === "cancelled"
-            ? "gray"
+            ? "red"
             : state.group === "failed_delivery"
               ? "amber"
               : "indigo";
@@ -63,10 +63,10 @@ export function OrderRow({
 }) {
   const selected = c.selectedIds.includes(order.id);
   const status = orderStatusView(order);
-  const confirmable =
-    !order.ecotrack_tracking &&
-    ["abandoned", "complete", "not_responding"].includes(order.status);
-  const shippable = order.status === "confirmed" && !order.ecotrack_tracking;
+  // Only the next step the order flow allows is offered on the row.
+  const confirmable = canDo(order, "refused");
+  const canConfirm = canDo(order, "confirm");
+  const shippable = canDo(order, "ship");
   const name = order.full_name?.trim() || "عميل بدون اسم";
   const where = [
     place(order.wilaya) || "العنوان غير مكتمل",
@@ -78,7 +78,8 @@ export function OrderRow({
   return (
     <div
       className={
-        "ops-row" +
+        "ops-row tone-" +
+        status.tone +
         (selected ? " is-selected" : "") +
         (selecting ? " selecting" : "")
       }
@@ -133,10 +134,8 @@ export function OrderRow({
             <button
               type="button"
               className="ops-btn small primary"
-              disabled={c.loading || c.contactBusy || !canConfirmOrder(order)}
-              title={
-                canConfirmOrder(order) ? undefined : "رقم الهاتف غير مكتمل"
-              }
+              disabled={c.loading || c.contactBusy || !canConfirm}
+              title={canConfirm ? undefined : "رقم الهاتف غير مكتمل"}
               onClick={() => void c.recordContact(order, "confirmed")}
             >
               <Check size={16} />

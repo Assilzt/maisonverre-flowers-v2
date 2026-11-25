@@ -1,6 +1,7 @@
 import { ArrowUp, Trash2, Plus } from "lucide-react";
 import { DEFAULT_PRODUCT, type ProductLandingConfig } from "@shared/catalog";
 import type { ProductErrors } from "./validation";
+import { ImageUploader } from "./ImageUploader";
 export type ProductSection =
   "basic" | "images" | "offers" | "content" | "advanced";
 type Props = {
@@ -190,20 +191,14 @@ export function ProductFields({
             {errors.images}
           </p>
         )}
-        <Collection
-          title="الصور"
-          items={page.images}
-          fields={[
-            { key: "src", label: "رابط الصورة" },
-            { key: "alt", label: "وصف الصورة" },
-            { key: "label", label: "عنوان الصورة" },
-          ]}
-          template={{ src: "", alt: "", label: "" }}
+        <h2 style={{ marginBottom: 12 }}>صور المنتج</h2>
+        <ImageUploader
+          images={page.images}
+          productName={page.name}
           onChange={v => change("images", v)}
         />
-        <p className="muted" style={{ marginTop: 16 }}>
-          استخدم رابط HTTPS أو صورة موجودة داخل /images/. رفع الملفات المباشر
-          غير مضاف حاليًا. الصورة الأولى هي الصورة الرئيسية.
+        <p className="muted" style={{ marginTop: 14 }}>
+          الصورة الأولى هي الصورة الرئيسية في صفحة المنتج.
         </p>
       </section>
     );

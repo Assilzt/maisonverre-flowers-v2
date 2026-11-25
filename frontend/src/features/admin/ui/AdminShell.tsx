@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Dialog } from "./Dialog";
 import "@/styles/admin.css";
+import "@/styles/ios-admin.css";
 export type AdminArea =
   "overview" | "orders" | "products" | "shipping" | "reports" | "settings";
 export const navigation = [

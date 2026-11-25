@@ -21,7 +21,7 @@ export const statusTones: Record<OrderStatus, StatusTone> = {
   shipped: "indigo",
   delivered: "green",
   returned: "red",
-  cancelled: "gray",
+  cancelled: "red",
   trashed: "gray",
 };
 export const formatDate = (value: string) =>

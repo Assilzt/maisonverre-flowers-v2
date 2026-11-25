@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Request } from "../../http/contracts.js";
 import { headerValue } from "../../http/request.js";
+import { internationalPhone } from "../../../shared/phone.js";
 
 /** Graph API version for the Conversions API (supported until July 2028). */
 export const META_GRAPH_VERSION = "v25.0";
@@ -29,13 +30,8 @@ export type CapiEvent = {
 export const sha256 = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 
-/** Algerian mobile number in E.164 digits without "+", e.g. 213551234567. */
-export function normalizeMetaPhone(phone: unknown) {
-  const digits = String(phone || "").replace(/\D/g, "");
-  if (/^0[5-7]\d{8}$/.test(digits)) return "213" + digits.slice(1);
-  if (/^213[5-7]\d{8}$/.test(digits)) return digits;
-  return undefined;
-}
+/** Algerian mobile number in E.164 digits without "+" (shared helper). */
+export const normalizeMetaPhone = internationalPhone;
 
 /** Lowercase, no spaces or punctuation; Arabic letters are kept (UTF-8). */
 const normalizeText = (value: unknown) =>

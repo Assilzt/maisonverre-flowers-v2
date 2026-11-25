@@ -7,6 +7,7 @@ import {
   rowById,
   recordEvent,
 } from "../repositories/index.js";
+import { canTrash } from "../../shared/order-flow.js";
 export async function updateTrash(
   request: Request,
   response: Response,
@@ -23,6 +24,12 @@ export async function updateTrash(
     response
       .status(200)
       .json({ order, message: "الطلب موجود مسبقاً في سلة المهملات" });
+    return;
+  }
+  if (!canTrash(order)) {
+    response.status(409).json({
+      error: "الشحنة في الطريق؛ ألغِ الشحنة أولاً ثم احذف الطلب",
+    });
     return;
   }
   const updated =

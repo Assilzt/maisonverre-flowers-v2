@@ -9,9 +9,12 @@ import jobs from "../api/jobs.js";
 import connection from "../api/connection.js";
 import recovery from "../api/recovery.js";
 import render from "../api/render.js";
+import media from "../api/media.js";
 import type { Request, Response } from "./repositories/index.js";
 export const app = express();
 app.disable("x-powered-by");
+// Image uploads need a larger body; every other API stays small.
+app.use("/api/media", express.json({ limit: "3mb" }));
 app.use(express.json({ limit: "128kb" }));
 const handlers: Record<
   string,
@@ -26,6 +29,7 @@ const handlers: Record<
   connection,
   recovery,
   render,
+  media,
 };
 app.all("/api/:resource", async (req, res) => {
   const handler = handlers[req.params.resource];

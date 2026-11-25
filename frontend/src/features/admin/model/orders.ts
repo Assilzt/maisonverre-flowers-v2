@@ -170,6 +170,40 @@ export function createOrderActions(
       setContactBusy(false);
     }
   };
+  /** One step in the order flow: confirm, cancel, back to review, reopen. */
+  const changeStatus = async (
+    order: Order,
+    status: "confirmed" | "cancelled" | "complete"
+  ) => {
+    setContactBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id: order.id, status }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "تعذر تغيير حالة الطلب");
+      setOrders(current =>
+        current.map(item => (item.id === order.id ? data.order : item))
+      );
+      const eventsResponse = await fetch(
+        `/api/orders?resource=events&orderId=${order.id}`,
+        { headers: authHeaders() }
+      );
+      const eventsData = await eventsResponse.json().catch(() => ({}));
+      setOrderEvents(eventsData.events || []);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "تعذر تغيير حالة الطلب"
+      );
+    } finally {
+      setContactBusy(false);
+    }
+  };
   const addOrderComment = async (order: Order) => {
     const note = commentDraft.trim();
     if (!note) return;
@@ -259,6 +293,7 @@ export function createOrderActions(
     closeOrder,
     startWork,
     recordContact,
+    changeStatus,
     addOrderComment,
     visibleIds,
     allVisibleSelected,

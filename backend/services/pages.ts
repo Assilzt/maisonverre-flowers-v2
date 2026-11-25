@@ -8,8 +8,11 @@ const imageUrl = z
   .string()
   .max(1500)
   .refine(
-    v => v.startsWith("/images/") || /^https:\/\//.test(v),
-    "Use an image path or HTTPS URL"
+    v =>
+      v.startsWith("/images/") ||
+      /^\/api\/media\?id=[a-f0-9]{24}$/.test(v) ||
+      /^https:\/\//.test(v),
+    "Upload an image"
   );
 export const pageSchema = z.object({
   slug: z

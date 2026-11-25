@@ -1,3 +1,4 @@
+import { allowedActions, manualTarget } from "../../shared/order-flow.js";
 import type { Order as OrderRow } from "./../../shared/orders.js";
 import { sql } from "./connection.js";
 import { createHash } from "node:crypto";
@@ -76,13 +77,6 @@ export const saveShipmentUpdate = async (
   };
 };
 
-export const canManualTransition = (order: OrderRow, nextStatus: string) => {
-  if (order.ecotrack_tracking) return false;
-  if (nextStatus === "confirmed")
-    return ["abandoned", "complete", "not_responding"].includes(order.status);
-  if (nextStatus === "cancelled")
-    return ["abandoned", "complete", "not_responding", "confirmed"].includes(
-      order.status
-    );
-  return false;
-};
+/** Manual status changes follow the shared order flow, one step at a time. */
+export const canManualTransition = (order: OrderRow, nextStatus: string) =>
+  allowedActions(order).some(action => manualTarget[action] === nextStatus);

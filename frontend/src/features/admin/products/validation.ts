@@ -13,11 +13,13 @@ export function validateProductForm(page: ProductLandingConfig): ProductErrors {
     !page.images.length ||
     page.images.length > 10 ||
     page.images.some(
-      i => !i.src.startsWith("/images/") && !/^https:\/\//.test(i.src)
+      i =>
+        !i.src.startsWith("/images/") &&
+        !i.src.startsWith("/api/media?id=") &&
+        !/^https:\/\//.test(i.src)
     )
   )
-    errors.images =
-      "أضف صورة واحدة على الأقل عبر HTTPS أو مسار /images/ صحيح، بحد أقصى 10 صور.";
+    errors.images = "ارفع صورة واحدة على الأقل، بحد أقصى 10 صور.";
   const bundles = page.bundles || [];
   if (
     !bundles.length ||
