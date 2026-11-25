@@ -131,15 +131,18 @@ it("shows queue tabs with counts and opens a queue from its tab", async () => {
   await act(async () => tab.click());
   expect(c.goToSection).toHaveBeenCalledWith("confirmation");
 });
-it("shows bulk actions only while orders are selected", async () => {
+it("shows selection circles only in select mode and the action bar only with a selection", async () => {
   await act(async () => root.render(<OrdersScreen context={screen()} />));
+  expect(host.querySelector(".ops-row.selecting")).toBeNull();
   expect(host.querySelector(".ops-bulk")).toBeNull();
-  expect(host.querySelector('[aria-label="البحث في الطلبات"]')).not.toBeNull();
+  await act(async () => button("تحديد").click());
+  expect(host.querySelector(".ops-row.selecting")).not.toBeNull();
+  expect(host.querySelector(".ops-bulk")).toBeNull();
   await act(async () =>
     root.render(<OrdersScreen context={screen({ selectedIds: [7] })} />)
   );
   expect(host.querySelector(".ops-bulk")?.textContent).toContain("1 محدد");
-  expect(host.querySelector('[aria-label="البحث في الطلبات"]')).toBeNull();
+  expect(host.querySelector('[aria-label="البحث في الطلبات"]')).not.toBeNull();
 });
 it("shows the useful order facts in one row and keeps actions from opening it", async () => {
   const c = screen();

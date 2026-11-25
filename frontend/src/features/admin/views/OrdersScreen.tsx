@@ -1,4 +1,5 @@
 import "@/styles/ops.css";
+import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -44,6 +45,13 @@ const PERIODS = [
 ] as const;
 
 export function OrdersScreen({ context: c }: { context: DashboardContext }) {
+  // iOS-style edit mode: selection circles appear only after tapping "تحديد".
+  const [selecting, setSelecting] = useState(false);
+  const selectMode = selecting || c.selectedIds.length > 0;
+  const stopSelecting = () => {
+    setSelecting(false);
+    c.setSelectedIds([]);
+  };
   const total = Object.entries(c.counts)
     .filter(([status]) => status !== "trashed")
     .reduce((sum, [, count]) => sum + count, 0);
@@ -92,7 +100,7 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
         <div className="ops-header-title">
           <button
             type="button"
-            className="ops-btn icon ops-menu-button"
+            className="ops-btn round ops-menu-button"
             onClick={() => c.setDrawerOpen(true)}
             aria-label="فتح القائمة"
           >
@@ -106,12 +114,12 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
         <div className="ops-header-actions">
           <button
             type="button"
-            className="ops-btn quiet"
+            className="ops-btn round"
             onClick={() => void c.loadOrders()}
             aria-label="تحديث الطلبات"
+            title="تحديث"
           >
-            <RefreshCw size={16} className={c.loading ? "ops-spin" : ""} />
-            <span className="ops-hide-phone">تحديث</span>
+            <RefreshCw size={18} className={c.loading ? "ops-spin" : ""} />
           </button>
           {needsWork && (
             <button
@@ -148,7 +156,7 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
         </div>
       )}
 
-      <div className="ops-tabs" role="tablist" aria-label="مراحل الطلبات">
+      <div className="ops-segments" role="tablist" aria-label="مراحل الطلبات">
         {tabs.map(([section, label, count, attention]) => (
           <button
             key={section}
@@ -171,9 +179,191 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
         ))}
       </div>
 
-      {c.selectedIds.length > 0 ? (
+      <div className="ops-toolbar">
+        <label className="ops-search">
+          <Search size={17} />
+          <input
+            className="ops-input"
+            type="search"
+            value={c.query}
+            onChange={e => c.setQuery(e.target.value)}
+            placeholder="بحث بالاسم، الهاتف، الولاية أو رقم التتبع"
+            aria-label="البحث في الطلبات"
+          />
+        </label>
+        <select
+          className="ops-select"
+          value={c.datePreset}
+          onChange={e => c.setDatePreset(e.target.value as typeof c.datePreset)}
+          aria-label="الفترة"
+        >
+          {PERIODS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        {c.datePreset === "custom" && (
+          <>
+            <input
+              className="ops-input"
+              type="date"
+              value={c.dateFrom}
+              onChange={e => c.setDateFrom(e.target.value)}
+              aria-label="من تاريخ"
+            />
+            <input
+              className="ops-input"
+              type="date"
+              value={c.dateTo}
+              onChange={e => c.setDateTo(e.target.value)}
+              aria-label="إلى تاريخ"
+            />
+          </>
+        )}
+        {c.availableStages.length > 0 &&
+          ["orders", "tracking", "completed", "returns"].includes(
+            c.section
+          ) && (
+            <select
+              className="ops-select"
+              value={c.shippingStage}
+              onChange={e => c.setShippingStage(e.target.value)}
+              aria-label="مرحلة الشحن"
+            >
+              <option value="">كل مراحل الشحن</option>
+              {c.availableStages.map(stage => (
+                <option key={stage} value={stage}>
+                  {shippingStatus(stage).label}
+                </option>
+              ))}
+            </select>
+          )}
+        {filtered && (
+          <button
+            type="button"
+            className="ops-btn plain"
+            onClick={clearFilters}
+          >
+            مسح
+          </button>
+        )}
+        {c.section === "shipping" && shipReady > 0 && !selectMode && (
+          <button
+            type="button"
+            className="ops-btn primary"
+            disabled={c.loading}
+            onClick={() => {
+              if (window.confirm(`رفع ${shipReady} طلب مؤكد لشركة التوصيل؟`))
+                void c.shipAll();
+            }}
+          >
+            <Truck size={17} />
+            رفع الكل ({shipReady})
+          </button>
+        )}
+        <span className="ops-result-count num">
+          {c.totalRows.toLocaleString("en-US")} طلب
+        </span>
+        {rows.length > 0 && (
+          <button
+            type="button"
+            className="ops-btn plain"
+            onClick={() => (selectMode ? stopSelecting() : setSelecting(true))}
+          >
+            {selectMode ? "تم" : "تحديد"}
+          </button>
+        )}
+      </div>
+
+      {c.section === "trash" && (
+        <p className="ops-note">
+          افتح الطلب لاسترجاعه، أو اضغط «تحديد» لعدة طلبات.
+        </p>
+      )}
+
+      {c.error && (
+        <div className="ops-banner" role="alert">
+          <span>{c.error}</span>
+          <button
+            type="button"
+            className="ops-btn small round"
+            aria-label="إغلاق التنبيه"
+            onClick={() => c.setError("")}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      <section
+        className="ops-list"
+        aria-label="قائمة الطلبات"
+        aria-busy={c.loading}
+      >
+        {c.loading && rows.length > 0 && <div className="ops-progress" />}
+        {selectMode && rows.length > 0 && (
+          <label className="ops-list-head">
+            <input
+              type="checkbox"
+              className="ops-check"
+              checked={c.allVisibleSelected}
+              onChange={c.toggleSelectAll}
+              aria-label="تحديد كل طلبات الصفحة"
+            />
+            تحديد الكل
+          </label>
+        )}
+        {c.loading && rows.length === 0 ? (
+          Array.from({ length: 6 }, (_, i) => (
+            <div className="ops-skeleton-row" key={i} aria-hidden="true">
+              <span className="ops-avatar" />
+              <span>
+                <span className="ops-skeleton" style={{ width: "55%" }} />
+                <span
+                  className="ops-skeleton"
+                  style={{ width: "80%", marginTop: 8 }}
+                />
+              </span>
+              <span className="ops-skeleton" />
+            </div>
+          ))
+        ) : rows.length ? (
+          rows.map(order => (
+            <OrderRow
+              key={order.id}
+              order={order}
+              context={c}
+              selecting={selectMode}
+            />
+          ))
+        ) : (
+          <div className="ops-empty">
+            <span className="ops-empty-icon">
+              <PackageSearch size={32} strokeWidth={1.6} />
+            </span>
+            <h2>{filtered ? "لا توجد نتائج" : "لا توجد طلبات هنا"}</h2>
+            <p>
+              {filtered
+                ? "جرّب كلمة بحث أخرى أو فترة أوسع."
+                : "ستظهر الطلبات هنا عندما تصل إلى هذه المرحلة."}
+            </p>
+            {filtered && (
+              <button
+                type="button"
+                className="ops-btn tinted"
+                onClick={clearFilters}
+              >
+                مسح البحث والفلاتر
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {c.selectedIds.length > 0 && (
         <div className="ops-bulk" role="region" aria-label="إجراءات المحدد">
-          <strong>{c.selectedIds.length} محدد</strong>
+          <strong className="num">{c.selectedIds.length} محدد</strong>
           {c.section === "trash" ? (
             <button
               type="button"
@@ -202,6 +392,15 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
                 type="button"
                 className="ops-btn small"
                 disabled={c.bulkBusy}
+                onClick={c.exportSelectedOrdersPdf}
+              >
+                <FileDown size={16} />
+                PDF
+              </button>
+              <button
+                type="button"
+                className="ops-btn small"
+                disabled={c.bulkBusy}
                 onClick={() => {
                   if (window.confirm("إلغاء الطلبات المحددة؟"))
                     void c.bulkUpdate("cancelled");
@@ -211,204 +410,29 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
               </button>
               <button
                 type="button"
-                className="ops-btn small"
-                disabled={c.bulkBusy}
-                onClick={c.exportSelectedOrdersPdf}
-              >
-                <FileDown size={15} />
-                PDF
-              </button>
-              <button
-                type="button"
-                className="ops-btn small"
+                className="ops-btn small round danger"
+                aria-label="حذف المحدد"
+                title="حذف"
                 disabled={c.bulkBusy}
                 onClick={() => {
                   if (window.confirm("نقل الطلبات المحددة إلى المحذوفات؟"))
                     void c.bulkUpdate(null, "trash");
                 }}
               >
-                <Trash2 size={15} />
-                حذف
+                <Trash2 size={16} />
               </button>
             </>
           )}
           <button
             type="button"
-            className="ops-btn small icon quiet"
+            className="ops-btn small round"
             aria-label="إلغاء التحديد"
-            onClick={() => c.setSelectedIds([])}
-          >
-            <X size={16} />
-          </button>
-        </div>
-      ) : (
-        <div className="ops-toolbar">
-          <label className="ops-search">
-            <Search size={16} />
-            <input
-              className="ops-input"
-              type="search"
-              value={c.query}
-              onChange={e => c.setQuery(e.target.value)}
-              placeholder="ابحث بالاسم، الهاتف، الولاية أو رقم التتبع"
-              aria-label="البحث في الطلبات"
-            />
-          </label>
-          <select
-            className="ops-select"
-            value={c.datePreset}
-            onChange={e =>
-              c.setDatePreset(e.target.value as typeof c.datePreset)
-            }
-            aria-label="الفترة"
-          >
-            {PERIODS.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {c.datePreset === "custom" && (
-            <>
-              <input
-                className="ops-input"
-                type="date"
-                value={c.dateFrom}
-                onChange={e => c.setDateFrom(e.target.value)}
-                aria-label="من تاريخ"
-              />
-              <input
-                className="ops-input"
-                type="date"
-                value={c.dateTo}
-                onChange={e => c.setDateTo(e.target.value)}
-                aria-label="إلى تاريخ"
-              />
-            </>
-          )}
-          {c.availableStages.length > 0 &&
-            ["orders", "tracking", "completed", "returns"].includes(
-              c.section
-            ) && (
-              <select
-                className="ops-select"
-                value={c.shippingStage}
-                onChange={e => c.setShippingStage(e.target.value)}
-                aria-label="مرحلة الشحن"
-              >
-                <option value="">كل مراحل الشحن</option>
-                {c.availableStages.map(stage => (
-                  <option key={stage} value={stage}>
-                    {shippingStatus(stage).label}
-                  </option>
-                ))}
-              </select>
-            )}
-          {filtered && (
-            <button
-              type="button"
-              className="ops-btn quiet"
-              onClick={clearFilters}
-            >
-              مسح
-            </button>
-          )}
-          {c.section === "shipping" && shipReady > 0 && (
-            <button
-              type="button"
-              className="ops-btn primary"
-              disabled={c.loading}
-              onClick={() => {
-                if (window.confirm(`رفع ${shipReady} طلب مؤكد لشركة التوصيل؟`))
-                  void c.shipAll();
-              }}
-            >
-              <Truck size={16} />
-              رفع الكل ({shipReady})
-            </button>
-          )}
-          <span className="ops-result-count num">
-            {c.totalRows.toLocaleString("en-US")} طلب
-          </span>
-        </div>
-      )}
-
-      {c.section === "trash" && (
-        <p className="ops-note">افتح الطلب لاسترجاعه، أو حدّد عدة طلبات.</p>
-      )}
-
-      {c.error && (
-        <div className="ops-banner" role="alert">
-          <span>{c.error}</span>
-          <button
-            type="button"
-            className="ops-btn small icon quiet"
-            aria-label="إغلاق التنبيه"
-            onClick={() => c.setError("")}
+            onClick={stopSelecting}
           >
             <X size={16} />
           </button>
         </div>
       )}
-
-      <section
-        className="ops-list"
-        aria-label="قائمة الطلبات"
-        aria-busy={c.loading}
-      >
-        {c.loading && rows.length > 0 && <div className="ops-progress" />}
-        <div className="ops-list-head">
-          <input
-            type="checkbox"
-            className="ops-check"
-            checked={c.allVisibleSelected && rows.length > 0}
-            onChange={c.toggleSelectAll}
-            aria-label="تحديد كل طلبات الصفحة"
-            disabled={!rows.length}
-          />
-          <span>العميل</span>
-          <span>الوجهة</span>
-          <span className="ops-col-product">المنتج</span>
-          <span>المبلغ</span>
-          <span>الحالة</span>
-          <span />
-        </div>
-        {c.loading && rows.length === 0 ? (
-          Array.from({ length: 6 }, (_, i) => (
-            <div className="ops-row" key={i} aria-hidden="true">
-              <span />
-              <span className="ops-skeleton" style={{ width: "70%" }} />
-              <span className="ops-skeleton" style={{ width: "60%" }} />
-              <span
-                className="ops-skeleton ops-col-product"
-                style={{ width: "50%" }}
-              />
-              <span className="ops-skeleton" style={{ width: "80%" }} />
-              <span className="ops-skeleton" style={{ width: "60%" }} />
-              <span />
-            </div>
-          ))
-        ) : rows.length ? (
-          rows.map(order => (
-            <OrderRow key={order.id} order={order} context={c} />
-          ))
-        ) : (
-          <div className="ops-empty">
-            <PackageSearch size={36} strokeWidth={1.5} />
-            <h2>{filtered ? "لا توجد نتائج" : "لا توجد طلبات هنا"}</h2>
-            <p>
-              {filtered
-                ? "جرّب كلمة بحث أخرى أو فترة أوسع."
-                : "ستظهر الطلبات هنا عندما تصل إلى هذه المرحلة."}
-            </p>
-            {filtered && (
-              <button type="button" className="ops-btn" onClick={clearFilters}>
-                مسح البحث والفلاتر
-              </button>
-            )}
-          </div>
-        )}
-      </section>
 
       {c.totalRows > PAGE_SIZE && (
         <footer className="ops-pager">
@@ -418,7 +442,7 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
           <div>
             <button
               type="button"
-              className="ops-btn small"
+              className="ops-btn small tinted"
               disabled={c.loading || c.ordersPage <= 1}
               onClick={() => c.setOrdersPage(page => page - 1)}
             >
@@ -427,7 +451,7 @@ export function OrdersScreen({ context: c }: { context: DashboardContext }) {
             </button>
             <button
               type="button"
-              className="ops-btn small"
+              className="ops-btn small tinted"
               disabled={c.loading || c.ordersPage >= pages}
               onClick={() => c.setOrdersPage(page => page + 1)}
             >

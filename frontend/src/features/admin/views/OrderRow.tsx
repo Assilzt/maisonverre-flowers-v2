@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { Check, Phone, Truck, X } from "lucide-react";
+import { Check, ChevronLeft, Phone, Truck, X } from "lucide-react";
 import type { Order } from "@shared/orders";
 import { shippingStatus } from "@shared/shipping-status";
 import type { DashboardContext } from "../useDashboard";
@@ -55,9 +55,11 @@ const keep = (event: MouseEvent) => event.stopPropagation();
 export function OrderRow({
   order,
   context: c,
+  selecting = false,
 }: {
   order: Order;
   context: DashboardContext;
+  selecting?: boolean;
 }) {
   const selected = c.selectedIds.includes(order.id);
   const status = orderStatusView(order);
@@ -66,12 +68,25 @@ export function OrderRow({
     ["abandoned", "complete", "not_responding"].includes(order.status);
   const shippable = order.status === "confirmed" && !order.ecotrack_tracking;
   const name = order.full_name?.trim() || "عميل بدون اسم";
+  const where = [
+    place(order.wilaya) || "العنوان غير مكتمل",
+    order.commune,
+    order.delivery_type === "stop_desk" ? "مكتب الشحن" : "المنزل",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <div
-      className={"ops-row" + (selected ? " is-selected" : "")}
-      onClick={() => c.openOrder(order)}
+      className={
+        "ops-row" +
+        (selected ? " is-selected" : "") +
+        (selecting ? " selecting" : "")
+      }
+      onClick={() =>
+        selecting ? c.toggleSelected(order.id) : c.openOrder(order)
+      }
     >
-      <div className="ops-cell ops-col-check" onClick={keep}>
+      <div className="ops-col-check" onClick={keep}>
         <input
           type="checkbox"
           className="ops-check"
@@ -80,7 +95,10 @@ export function OrderRow({
           aria-label={"تحديد طلب " + name}
         />
       </div>
-      <div className="ops-cell ops-col-customer">
+      <div className="ops-avatar" aria-hidden="true">
+        {name.slice(0, 1)}
+      </div>
+      <div className="ops-main">
         <button
           type="button"
           className="ops-name"
@@ -89,90 +107,76 @@ export function OrderRow({
             c.openOrder(order);
           }}
         >
-          <span className="ops-primary">{name}</span>
-          <span className="ops-secondary ops-phone num">{order.phone}</span>
+          {name}
         </button>
-      </div>
-      <div className="ops-cell ops-col-destination">
-        <span className="ops-primary">
-          {place(order.wilaya) || "العنوان غير مكتمل"}
-        </span>
-        <span className="ops-secondary">
-          {[
-            order.commune,
-            order.delivery_type === "stop_desk" ? "مكتب الشحن" : "المنزل",
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+        <span className="ops-line">{where}</span>
+        <span className="ops-line small">
+          <span className="ops-phone num">{order.phone}</span>
+          {" · "}
+          {order.order_snapshot?.name || order.campaign || "—"} ×{" "}
+          <span className="num">{order.quantity || 1}</span>
         </span>
       </div>
-      <div className="ops-cell ops-col-product">
-        <span className="ops-primary">
-          {order.order_snapshot?.name || order.campaign || "—"}
-        </span>
-        <span className="ops-secondary num">× {order.quantity || 1}</span>
-      </div>
-      <div className="ops-cell ops-col-amount">
+      <div className="ops-meta">
         <span className="ops-amount num">
           {(order.price + (order.delivery_fee || 0)).toLocaleString("en-US")}{" "}
           <small>دج</small>
         </span>
-      </div>
-      <div className="ops-cell ops-col-status">
         <span className={"ops-badge " + status.tone}>{status.label}</span>
-        <span className="ops-secondary num" title={order.created_at}>
+        <span className="ops-time num" title={order.created_at}>
           {timeAgo(order.created_at)}
         </span>
       </div>
-      <div className="ops-cell ops-col-actions" onClick={keep}>
-        <div className="ops-actions">
-          {confirmable && (
-            <>
-              <button
-                type="button"
-                className="ops-btn small primary"
-                disabled={c.loading || c.contactBusy || !canConfirmOrder(order)}
-                title={
-                  canConfirmOrder(order) ? undefined : "رقم الهاتف غير مكتمل"
-                }
-                onClick={() => void c.recordContact(order, "confirmed")}
-              >
-                <Check size={15} />
-                تأكيد
-              </button>
-              <button
-                type="button"
-                className="ops-btn small icon"
-                aria-label={"رفض طلب " + name}
-                title="رفض"
-                disabled={c.loading || c.contactBusy}
-                onClick={() => void c.recordContact(order, "refused")}
-              >
-                <X size={15} />
-              </button>
-            </>
-          )}
-          {shippable && (
+      <div className="ops-actions" onClick={keep}>
+        {!selecting && confirmable && (
+          <>
             <button
               type="button"
               className="ops-btn small primary"
-              disabled={c.loading}
-              onClick={() => void c.runAction(order.id, "ship")}
+              disabled={c.loading || c.contactBusy || !canConfirmOrder(order)}
+              title={
+                canConfirmOrder(order) ? undefined : "رقم الهاتف غير مكتمل"
+              }
+              onClick={() => void c.recordContact(order, "confirmed")}
             >
-              <Truck size={15} />
-              رفع للشحن
+              <Check size={16} />
+              تأكيد
             </button>
-          )}
+            <button
+              type="button"
+              className="ops-btn small round danger"
+              aria-label={"رفض طلب " + name}
+              title="رفض"
+              disabled={c.loading || c.contactBusy}
+              onClick={() => void c.recordContact(order, "refused")}
+            >
+              <X size={16} />
+            </button>
+          </>
+        )}
+        {!selecting && shippable && (
+          <button
+            type="button"
+            className="ops-btn small primary"
+            disabled={c.loading}
+            onClick={() => void c.runAction(order.id, "ship")}
+          >
+            <Truck size={16} />
+            رفع للشحن
+          </button>
+        )}
+        {!selecting && (
           <a
-            className="ops-btn small icon"
+            className="ops-btn small round tinted"
             href={"tel:" + order.phone}
             aria-label={"اتصال بـ " + name}
             title="اتصال"
           >
-            <Phone size={15} />
+            <Phone size={16} />
           </a>
-        </div>
+        )}
       </div>
+      <ChevronLeft className="ops-chevron" size={18} aria-hidden="true" />
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function Dashboard() {
   const operations = window.location.pathname === "/admin/operations";
   return (
     <main
-      className="admin-dashboard min-h-screen bg-[#f6f7f9] text-slate-950"
+      className="admin-dashboard min-h-screen bg-[#f2f2f7] text-slate-950"
       dir="rtl"
       onTouchStart={event => {
         touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -76,7 +76,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      <div className="mx-auto flex min-h-screen max-w-[1500px]">
+      <div className="flex min-h-screen">
         <DashboardSidebar context={context} />
         <section className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-10 lg:py-8">
           {operations ? (
@@ -111,13 +111,13 @@ export default function Dashboard() {
       </div>
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[2px]"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[3px]"
           onClick={() => setDrawerOpen(false)}
         />
       )}
       <DashboardMobileDrawer context={context} />
       <SettingsDialog context={context} />
-      <div className="admin-surface">
+      <div className="admin-surface ios-sheet">
         <OrderDialog context={context} />
       </div>
       <EditOrderDialog context={context} />
