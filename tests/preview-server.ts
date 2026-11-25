@@ -12,6 +12,7 @@ process.env.TELEGRAM_CHAT_ID = "fixture-chat";
 const { testDatabase } = await import("./database");
 const db = await testDatabase();
 const { seedPreviewOrders } = await import("./preview-data");
+const { previewCommunes, previewFees } = await import("./preview-catalog");
 await seedPreviewOrders(db);
 await db.query(
   "UPDATE atlasio_settings SET value='' WHERE key='meta_pixel_id'"
@@ -54,22 +55,11 @@ globalThis.fetch = async (input, init) => {
         { wilaya_id: 16, wilaya_name: "Alger" },
       ]);
     if (url.pathname.endsWith("/get/communes"))
-      return Response.json([
-        {
-          nom: "Batna",
-          wilaya_id: 5,
-          is_active: 1,
-          has_stop_desk: 1,
-          code_postal: "501",
-        },
-      ]);
+      return Response.json(
+        previewCommunes(Number(url.searchParams.get("wilaya_id") || 0))
+      );
     if (url.pathname.endsWith("/get/fees"))
-      return Response.json({
-        livraison: [
-          { wilaya_id: 5, tarif: 700, tarif_stopdesk: 400 },
-          { wilaya_id: 16, tarif: 400, tarif_stopdesk: 300 },
-        ],
-      });
+      return Response.json({ livraison: previewFees() });
     if (url.pathname.endsWith("/get/products/list"))
       return Response.json({
         products: [
