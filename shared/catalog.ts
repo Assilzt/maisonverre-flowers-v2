@@ -199,7 +199,7 @@ export function getProductSlugs(): string[] {
 /** Smaller copies of bundled images, used for responsive `srcset`. */
 export const IMAGE_VARIANTS: Record<string, string> = {
   "/images/flower-seed-mix.webp":
-    "/images/flower-seed-mix-480.webp 480w, /images/flower-seed-mix-800.webp 800w, /images/flower-seed-mix-1080.webp 1080w, /images/flower-seed-mix.webp 1254w",
+    "/images/flower-seed-mix-480.webp 480w, /images/flower-seed-mix-800.webp 800w, /images/flower-seed-mix.webp 1024w",
 };
 
 export const IMAGE_SIZES =

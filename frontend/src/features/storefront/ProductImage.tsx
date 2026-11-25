@@ -20,8 +20,8 @@ export function ProductImage({
         srcSet={srcSet}
         sizes={srcSet ? IMAGE_SIZES : undefined}
         alt={image.alt}
-        width={1254}
-        height={1254}
+        width={1024}
+        height={1024}
         loading="eager"
         fetchPriority={index === 0 ? "high" : "auto"}
         decoding="async"

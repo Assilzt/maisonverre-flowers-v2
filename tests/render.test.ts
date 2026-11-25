@@ -51,6 +51,6 @@ it("embeds checkout config and points the preload at the page image", async () =
   )?.[1];
   expect(JSON.parse(config!)).toMatchObject({ pixelId: "123456789" });
   const flower = await renderPage(DEFAULT_PRODUCT, withPreload);
-  expect(flower).toContain("flower-seed-mix-1080.webp 1080w");
+  expect(flower).toContain("flower-seed-mix.webp 1024w");
   expect(flower).toContain("flower-seed-mix-480.webp 480w");
 });
