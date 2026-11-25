@@ -159,9 +159,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
       {
         title: "حضّر التربة",
         text: "املأ أصيصًا أو حوضًا بتربة خفيفة ورطبة قليلًا.",
+        image: "/images/guide-soil.webp",
       },
       {
         title: "ازرع البذور",
+        image: "/images/guide-sow.webp",
         text: "ضع البذور الكبيرة على عمق نصف سنتيمتر تقريبًا، وانثر بذور الكوليوس الصغيرة على السطح مع ضغط خفيف.",
       },
       {

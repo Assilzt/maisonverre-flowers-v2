@@ -1025,3 +1025,44 @@
   color: var(--label-3);
   font-size: 0.95rem;
 }
+
+/* Guide photos: an iOS-style pair of rounded cards above the steps */
+.mv-guide-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.mv-guide-photos figure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #f2f2f7;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.mv-guide-photos img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.mv-guide-photos figcaption {
+  position: absolute;
+  inset: auto 8px 8px;
+  justify-self: center;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  margin: 0 auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--label);
+  font-size: 0.85rem;
+  font-weight: 700;
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}

@@ -624,23 +624,32 @@ export default function FlowerLanding({
             <p className="mv-guide-sub">
               خطوات بسيطة، حتى لو كانت أول مرة تزرع
             </p>
+            {guide.some(item => item.image) && (
+              <div className="mv-guide-photos">
+                {guide
+                  .filter(item => item.image)
+                  .slice(0, 2)
+                  .map(item => (
+                    <figure key={item.image}>
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        width={550}
+                        height={550}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <figcaption>{item.title}</figcaption>
+                    </figure>
+                  ))}
+              </div>
+            )}
             <ol>
               {guide.map((item, i) => (
                 <li key={i}>
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      width={88}
-                      height={88}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <span className="mv-guide-icon" aria-hidden="true">
-                      {GUIDE_ICONS[i % GUIDE_ICONS.length]}
-                    </span>
-                  )}
+                  <span className="mv-guide-icon" aria-hidden="true">
+                    {GUIDE_ICONS[i % GUIDE_ICONS.length]}
+                  </span>
                   <div>
                     <strong>
                       <span className="num">{i + 1}.</span> {item.title}
