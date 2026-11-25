@@ -25,13 +25,23 @@ function bundleSavings(bundle: ProductBundle, bundles: ProductBundle[]) {
   return Math.max(0, Math.round(unit * bundle.quantity - bundle.price));
 }
 
+/** "4 أكياس", "8 أكياس", "12 كيسًا": Arabic counting for the bag count. */
+const bagsText = (count: number) =>
+  count === 1
+    ? "كيس واحد"
+    : count === 2
+      ? "كيسان"
+      : count <= 10
+        ? `${count} أكياس`
+        : `${count} كيسًا`;
+
 const GUIDE_ICONS = ["🪴", "🌱", "💧", "☀️"];
 
-const STEPS = [
-  "اختر العرض واملأ الاستمارة",
-  "نتصل بك لتأكيد الطلب",
-  "نرسل الطلب إلى منزلك أو مكتب الشحن",
-  "تدفع عند الاستلام",
+const STEPS: Array<[string, string]> = [
+  ["📝", "اطلب"],
+  ["📞", "نتصل بك"],
+  ["🚚", "نوصّل"],
+  ["💵", "ادفع"],
 ];
 
 export default function FlowerLanding({
@@ -94,6 +104,11 @@ export default function FlowerLanding({
         )
       : undefined;
   const showTrust = product.sections?.trust !== false;
+  const bags = product.bagsPerPack || 0;
+  // The next bigger offer, suggested with its real extra cost.
+  const upgrade = bundles
+    .filter(b => b.quantity > (selectedBundle?.quantity || 0))
+    .sort((a, b) => a.quantity - b.quantity)[0];
   const guide =
     product.guide ??
     (product.slug === DEFAULT_PRODUCT.slug ? DEFAULT_PRODUCT.guide : undefined);
@@ -178,13 +193,15 @@ export default function FlowerLanding({
       <div className="mv-topbar" role="note">
         {(showTrust && product.trustBadges.length
           ? product.trustBadges
-          : ["الدفع عند الاستلام", "التوصيل إلى كل الولايات"]
-        ).map((badge, i) => (
-          <span key={i}>
-            <CheckIcon />
-            {badge}
-          </span>
-        ))}
+          : ["الدفع عند الاستلام", "توصيل للمنزل أو المكتب"]
+        )
+          .slice(0, 2)
+          .map((badge, i) => (
+            <span key={i}>
+              <CheckIcon />
+              {badge}
+            </span>
+          ))}
       </div>
 
       <main className="mv-main">
@@ -212,9 +229,6 @@ export default function FlowerLanding({
             <a className="mv-hero-cta" href="#order" ref={heroCtaRef}>
               اطلب الآن
             </a>
-            <p className="mv-hero-note">
-              لا تدفع شيئًا الآن · الدفع عند الاستلام
-            </p>
           </div>
         </section>
 
@@ -322,23 +336,61 @@ export default function FlowerLanding({
                         )}
                         <span className="mv-offer-radio" aria-hidden="true" />
                         <span className="mv-offer-label">{bundle.label}</span>
+                        {bags > 0 && (
+                          <span className="mv-offer-bags">
+                            {bagsText(bundle.quantity * bags)}
+                          </span>
+                        )}
+                        {savings > 0 && (
+                          <s className="mv-offer-was num">
+                            {money(bundle.price + savings)}
+                          </s>
+                        )}
                         <span className="mv-offer-price">
                           {money(bundle.price)}{" "}
                           <small>{product.currency}</small>
                         </span>
                         <span className="mv-offer-note">
-                          {free
-                            ? "توصيل مجاني"
-                            : savings > 0
-                              ? `وفّر ${money(savings)} ${product.currency}`
-                              : bundle.quantity > 1
-                                ? `${money(Math.round(bundle.price / bundle.quantity))} ${product.currency} للواحد`
-                                : " "}
+                          {savings > 0
+                            ? `وفّر ${money(savings)} ${product.currency}`
+                            : free
+                              ? "توصيل مجاني"
+                              : " "}
                         </span>
+                        {free && savings > 0 && (
+                          <span className="mv-offer-free">+ توصيل مجاني</span>
+                        )}
+                        {bags > 0 && (
+                          <span className="mv-offer-unit num">
+                            {money(
+                              Math.round(
+                                bundle.price / (bundle.quantity * bags)
+                              )
+                            )}{" "}
+                            {product.currency} للكيس
+                          </span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
+              )}
+
+              {upgrade && (
+                <button
+                  type="button"
+                  className="mv-upsell"
+                  onClick={() => setSelectedBundleQuantity(upgrade.quantity)}
+                >
+                  <span className="mv-upsell-plus num">
+                    +{money(upgrade.price - offerPrice)} {product.currency}
+                  </span>
+                  <span>
+                    {upgrade.quantity === product.freeShippingQuantity
+                      ? `أضف علبة واحصل على ${bags ? bagsText(upgrade.quantity * bags) : upgrade.label} مع توصيل مجاني`
+                      : `أضف علبة واحصل على ${bags ? bagsText(upgrade.quantity * bags) : upgrade.label}`}
+                  </span>
+                </button>
               )}
 
               <form
@@ -539,7 +591,12 @@ export default function FlowerLanding({
 
                 <div className="mv-summary-card" aria-live="polite">
                   <p>
-                    <span>{selectedBundle?.label || product.name}</span>
+                    <span>
+                      {selectedBundle?.label || product.name}
+                      {bags > 0 && selectedBundle
+                        ? ` (${bagsText(selectedBundle.quantity * bags)})`
+                        : ""}
+                    </span>
                     {" · "}
                     {compareAtTotal && offerPrice < compareAtTotal && (
                       <s className="num">{money(compareAtTotal)}</s>
@@ -607,25 +664,22 @@ export default function FlowerLanding({
           )}
         </section>
 
-        <section className="mv-steps" aria-labelledby="steps-title">
-          <h2 id="steps-title">كيف يتم الطلب؟</h2>
+        <section className="mv-steps" aria-label="كيف يتم الطلب">
           <ol>
-            {STEPS.map((step, i) => (
+            {STEPS.map(([icon, label], i) => (
               <li key={i}>
-                <span aria-hidden="true">{i + 1}</span>
-                {step}
+                <span aria-hidden="true">{icon}</span>
+                {label}
               </li>
             ))}
           </ol>
         </section>
 
-        <ProductSections product={product} />
-
         {guide && guide.length > 0 && (
           <section className="mv-guide" aria-labelledby="guide-title">
             <h2 id="guide-title">خطوات الزراعة</h2>
             <p className="mv-guide-sub">
-              خطوات بسيطة، حتى لو كانت أول مرة تزرع
+              أفضل وقت للزراعة: الربيع وبداية الصيف
             </p>
             {guide.some(item => item.image) && (
               <div className="mv-guide-photos">
@@ -667,6 +721,8 @@ export default function FlowerLanding({
             </a>
           </section>
         )}
+
+        <ProductSections product={product} />
 
         {product.reviews && product.reviews.length > 0 && (
           <section className="mv-reviews" aria-labelledby="reviews-title">

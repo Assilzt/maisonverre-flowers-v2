@@ -47,6 +47,8 @@ export type ProductLandingConfig = {
   price: number;
   compareAtPrice?: number;
   bundles?: ProductBundle[];
+  /** How many small bags one pack contains (shown as "4 أكياس"). */
+  bagsPerPack?: number;
   /** Bundle selected when the page opens; falls back to the first bundle. */
   defaultBundleQuantity?: number;
   freeShippingQuantity?: number;
@@ -90,28 +92,29 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
     name: "مجموعة بذور الزهور",
     shortName: "بذور الزهور",
     headline: "أطلق الألوان في حديقتك مع 4 أنواع من بذور الزهور",
-    subheadline: "زينيا وكوزموس وكوليوس ومارغريت في كيس واحد",
+    subheadline: "علبة فيها 4 أكياس: زينيا، كوزموس، كوليوس ومارغريت",
     description:
-      "كل كيس يضم أربعة أنواع من بذور الزهور: زينيا، كوزموس، كوليوس ومارغريت. ازرعها في الحديقة أو في الأصص واجمع ألواناً وأشكالاً مختلفة في مكان واحد. التوصيل مجاني عند اختيار 3 أكياس.",
+      "كل علبة فيها 4 أكياس، كيس لكل نوع: زينيا، كوزموس، كوليوس ومارغريت. التوصيل مجاني عند اختيار 3 علب.",
     price: 1900,
     freeShippingQuantity: 3,
     defaultBundleQuantity: 2,
+    bagsPerPack: 4,
     sections: {
       features: true,
       results: false,
       trust: true,
-      description: true,
+      description: false,
     },
     bundles: [
-      { quantity: 1, price: 1900, label: "كيس واحد" },
-      { quantity: 2, price: 2900, label: "كيسان" },
-      { quantity: 3, price: 3900, label: "3 أكياس" },
+      { quantity: 1, price: 1900, label: "علبة واحدة" },
+      { quantity: 2, price: 2900, label: "علبتان" },
+      { quantity: 3, price: 3900, label: "3 علب" },
     ],
     currency: "دج",
     images: [
       {
         src: "/images/flower-seed-mix.webp",
-        alt: "مجموعة بذور زهور بأربعة أنواع: زينيا وكوزموس وكوليوس ومارغريت، بسعر 1900 دج",
+        alt: "علبة بذور زهور فيها 4 أكياس: زينيا وكوزموس وكوليوس ومارغريت، بسعر 1900 دج",
         label: "مجموعة بذور الزهور",
       },
     ],
@@ -120,37 +123,32 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
         name: "زينيا",
         emoji: "🌺",
         accent: "bg-pink-100 text-pink-700",
-        details: "أزهار كبيرة بألوان زاهية، تحب الشمس وتزهر طوال الصيف",
+        details: "ألوان زاهية طوال الصيف",
         area: "ضمن المجموعة",
       },
       {
         name: "كوزموس",
         emoji: "🌸",
         accent: "bg-fuchsia-100 text-fuchsia-700",
-        details: "أزهار خفيفة متمايلة، سهلة الزراعة وتتحمل قلة الماء",
+        details: "سهلة وتتحمل قلة الماء",
         area: "ضمن المجموعة",
       },
       {
         name: "كوليوس",
         emoji: "🍃",
         accent: "bg-red-100 text-red-700",
-        details:
-          "أوراق ملوّنة بالأحمر الداكن والأخضر، تزيّن الحديقة والأصص طوال الموسم",
+        details: "أوراق حمراء وخضراء",
         area: "ضمن المجموعة",
       },
       {
         name: "مارغريت",
         emoji: "🌼",
         accent: "bg-yellow-100 text-yellow-700",
-        details: "بتلات بيضاء وقلب أصفر، مظهر كلاسيكي للحديقة والأصص",
+        details: "أبيض كلاسيكي بقلب أصفر",
         area: "ضمن المجموعة",
       },
     ],
-    trustBadges: [
-      "الدفع عند الاستلام",
-      "نتصل بك لتأكيد الطلب",
-      "توصيل للمنزل أو مكتب الشحن",
-    ],
+    trustBadges: ["الدفع عند الاستلام", "توصيل للمنزل أو المكتب"],
     resultEyebrow: "مجموعة من أربعة أنواع",
     resultTitle: "أضف ألواناً متنوعة إلى حديقتك",
     resultDescription:
@@ -172,38 +170,28 @@ export const PRODUCT_CONFIGS: Record<string, ProductLandingConfig> = {
       },
       {
         title: "الشمس والصبر",
-        text: "ضع الأصيص في مكان مضيء، وتظهر البراعم عادة خلال أسبوع إلى ثلاثة أسابيع.",
+        text: "الزينيا والكوزموس والمارغريت تحب الشمس، والكوليوس يفضّل نصف الظل. تظهر البراعم عادة خلال أسبوع إلى ثلاثة أسابيع.",
       },
     ],
     faq: [
       {
-        question: "متى أزرع البذور؟",
-        answer:
-          "أفضل وقت هو الربيع وبداية الصيف بعد انتهاء البرد. الزينيا والكوزموس والمارغريت تحب الشمس، والكوليوس يفضّل الضوء غير المباشر أو نصف الظل. يمكن الزراعة في الأصص أو مباشرة في الأرض.",
-      },
-      {
-        question: "كيف أزرعها؟",
-        answer:
-          "ضع البذور على عمق سنتيمتر تقريباً في تربة خفيفة، واسقها بانتظام دون إغراق حتى تنبت، ثم اتركها في الشمس.",
-      },
-      {
         question: "هل تنبت كل البذور؟",
         answer:
-          "تختلف نسبة الإنبات والإزهار حسب الموسم وجودة التربة والسقي والعناية، لذلك لا يمكن ضمان إنبات كل بذرة.",
+          "تختلف نسبة الإنبات حسب الموسم والتربة والسقي، لذلك لا يمكن ضمان إنبات كل بذرة.",
       },
       {
         question: "كيف يتم الدفع؟",
-        answer: "تدفع نقداً عند استلام الطلب. لا يوجد أي دفع مسبق.",
+        answer: "نقدًا عند استلام الطلب. لا يوجد دفع مسبق.",
       },
       {
         question: "متى يصلني الطلب؟",
         answer:
-          "نتصل بك لتأكيد الطلب، ثم نرسله إلى منزلك أو إلى مكتب شركة الشحن في ولايتك. تختلف مدة التوصيل حسب الولاية.",
+          "نتصل بك لتأكيد الطلب ثم نرسله. تختلف المدة حسب الولاية.",
       },
       {
         question: "كم سعر التوصيل؟",
         answer:
-          "يظهر سعر التوصيل لولايتك في الاستمارة قبل إرسال الطلب، والتوصيل مجاني عند اختيار 3 أكياس.",
+          "يظهر في الاستمارة حسب ولايتك، ومجاني عند اختيار 3 علب.",
       },
     ],
     tracking: {

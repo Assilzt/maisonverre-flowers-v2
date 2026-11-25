@@ -246,6 +246,19 @@ export function ProductFields({
             ))}
           </select>
         </label>
+        <label style={{ marginTop: 14 }}>
+          عدد الأكياس في العلبة
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={page.bagsPerPack ?? ""}
+            placeholder="اتركه فارغًا لإخفاء سعر الكيس"
+            onChange={e =>
+              change("bagsPerPack", Number(e.target.value) || undefined)
+            }
+          />
+        </label>
         <div className="detail-section">
           <h3>إعداد التوصيل</h3>
           <label style={{ marginTop: 14 }}>

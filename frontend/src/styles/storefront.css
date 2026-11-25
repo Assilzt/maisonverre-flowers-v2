@@ -406,7 +406,8 @@
   border-radius: 999px;
   background: var(--action);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
   font-weight: 800;
   white-space: nowrap;
   transform: translateX(-50%);
@@ -1149,4 +1150,131 @@
 }
 .mv-guide-cta:active {
   transform: scale(0.98);
+}
+
+/* Less text: one-line top bar that scrolls away, compact steps, 2x2 flowers */
+.mv-topbar {
+  position: static;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+.mv-main > .mv-steps {
+  padding: 14px 10px;
+}
+.mv-steps ol {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 0;
+}
+.mv-steps li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+.mv-steps li span {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #f2f2f7 !important;
+  font-size: 1.35rem;
+}
+.mv-steps li + li::before {
+  content: "";
+  position: absolute;
+  top: 21px;
+  inset-inline-start: -14%;
+  width: 28%;
+  border-top: 2px dotted rgba(60, 60, 67, 0.25);
+}
+.mv-features ul {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mv-features li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 0;
+  padding: 14px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: #f7f7fa;
+  text-align: center;
+}
+.mv-features li:last-child {
+  border-bottom: 0;
+}
+.mv-features p {
+  font-size: 0.88rem;
+}
+
+/* Offer card extras: bag count, old price, price per bag */
+.mv-offer-bags {
+  color: var(--label-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.mv-offer-was {
+  color: var(--label-3);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.mv-offer-free {
+  color: var(--action);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.mv-offer-unit {
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--label-2);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.mv-offer.is-selected .mv-offer-unit {
+  background: var(--tint-soft);
+  color: var(--tint);
+}
+
+/* One-tap upsell to the next offer */
+.mv-upsell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: -6px 0 16px;
+  padding: 12px 14px;
+  border: 1.5px dashed rgba(232, 89, 12, 0.45);
+  border-radius: 16px;
+  background: #fff7f1;
+  color: var(--label);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+}
+.mv-upsell:active {
+  transform: scale(0.99);
+}
+.mv-upsell-plus {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--action);
+  color: #fff;
+  font-size: 0.9rem;
 }

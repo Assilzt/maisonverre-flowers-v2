@@ -68,6 +68,7 @@ export const pageSchema = z.object({
   }),
   freeShippingQuantity: z.number().int().positive().optional(),
   defaultBundleQuantity: z.number().int().min(1).max(100).optional(),
+  bagsPerPack: z.number().int().min(1).max(100).optional(),
   faq: z
     .array(
       z.object({
