@@ -1,5 +1,12 @@
 import "@/styles/admin.css";
-import { AlertCircle, CheckCircle2, Info, Loader2, X } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  Loader2,
+  Menu,
+  X,
+} from "lucide-react";
 import { DashboardLogin } from "./views/DashboardLogin";
 import { DashboardSidebar } from "./views/DashboardSidebar";
 import { DashboardMobileDrawer } from "./views/DashboardMobileDrawer";
@@ -7,6 +14,7 @@ import { SettingsDialog } from "./views/SettingsDialog";
 import { OrderDialog } from "./views/OrderDialog";
 import { EditOrderDialog } from "./views/EditOrderDialog";
 import { OrdersScreen } from "./views/OrdersScreen";
+import { OperationsPanel } from "./OperationsPanel";
 import { useDashboard } from "./useDashboard";
 export default function Dashboard() {
   const context = useDashboard();
@@ -18,6 +26,7 @@ export default function Dashboard() {
     touchStartX,
   } = context;
   if (!context.password) return <DashboardLogin context={context} />;
+  const operations = window.location.pathname === "/admin/operations";
   return (
     <main
       className="admin-dashboard min-h-screen bg-[#f6f7f9] text-slate-950"
@@ -70,7 +79,34 @@ export default function Dashboard() {
       <div className="mx-auto flex min-h-screen max-w-[1500px]">
         <DashboardSidebar context={context} />
         <section className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-10 lg:py-8">
-          <OrdersScreen context={context} />
+          {operations ? (
+            <div className="ops">
+              <header className="ops-header">
+                <div className="ops-header-title">
+                  <button
+                    type="button"
+                    className="ops-btn icon ops-menu-button"
+                    onClick={() => setDrawerOpen(true)}
+                    aria-label="فتح القائمة"
+                  >
+                    <Menu size={18} />
+                  </button>
+                  <div>
+                    <h1>المهام والأخطاء</h1>
+                    <p>رسائل Telegram وشحنات تحتاج متابعة</p>
+                  </div>
+                </div>
+                <a className="ops-btn quiet" href="/admin">
+                  الطلبات
+                </a>
+              </header>
+              <div className="admin-surface">
+                <OperationsPanel />
+              </div>
+            </div>
+          ) : (
+            <OrdersScreen context={context} />
+          )}
         </section>
       </div>
       {drawerOpen && (

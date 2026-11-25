@@ -5,7 +5,6 @@ module.exports = {
       "./index.html",
       "./src/features/storefront/**/*.{ts,tsx}",
       "./src/features/checkout/**/*.{ts,tsx}",
-      "./src/components/ui/*.tsx",
     ],
   },
   theme: {

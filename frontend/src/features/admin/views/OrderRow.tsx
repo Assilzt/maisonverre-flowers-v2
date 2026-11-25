@@ -4,20 +4,11 @@ import type { Order } from "@shared/orders";
 import { shippingStatus } from "@shared/shipping-status";
 import type { DashboardContext } from "../useDashboard";
 import { canConfirmOrder } from "../ui/order-ui";
-
-type Tone = "blue" | "green" | "indigo" | "amber" | "red" | "gray";
-
-const STATUS: Record<string, [string, Tone]> = {
-  complete: ["جديد — يحتاج تأكيد", "blue"],
-  abandoned: ["طلب غير مكتمل", "amber"],
-  not_responding: ["لا يرد", "amber"],
-  confirmed: ["مؤكد", "green"],
-  shipped: ["أُرسل للشحن", "indigo"],
-  delivered: ["تم التسليم", "green"],
-  returned: ["مرتجع", "red"],
-  cancelled: ["ملغى", "gray"],
-  trashed: ["محذوف", "gray"],
-};
+import {
+  statusLabels,
+  statusTones,
+  type StatusTone as Tone,
+} from "../presentation";
 
 /** One label and one color per order: carrier status wins once shipped. */
 export function orderStatusView(order: Order): { label: string; tone: Tone } {
@@ -35,8 +26,10 @@ export function orderStatusView(order: Order): { label: string; tone: Tone } {
               : "indigo";
     return { label: state.label.split(" — ").pop() || state.label, tone };
   }
-  const [label, tone] = STATUS[order.status] || [order.status, "gray"];
-  return { label, tone };
+  return {
+    label: statusLabels[order.status] || order.status,
+    tone: statusTones[order.status] || "gray",
+  };
 }
 
 const relative = new Intl.RelativeTimeFormat("ar", { numeric: "auto" });

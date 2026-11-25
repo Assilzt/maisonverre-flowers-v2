@@ -1,6 +1,4 @@
 import { useMemo } from "react";
-import type { OrderStatus, Order } from "@shared/orders";
-import { shippingStatus } from "@shared/shipping-status";
 import type { DashboardState } from "./state";
 
 export function useDashboardDerived(
@@ -137,54 +135,6 @@ export function useDashboardDerived(
   const confirmationRate = totalOrderCount
     ? Math.round((confirmedLifecycleCount / totalOrderCount) * 100)
     : 0;
-  const statusTone = (value: OrderStatus) =>
-    value === "confirmed"
-      ? "bg-emerald-100 text-emerald-800 ring-emerald-300"
-      : value === "shipped"
-        ? "bg-blue-100 text-blue-800 ring-blue-300"
-        : value === "abandoned" || value === "not_responding"
-          ? "bg-slate-100 text-slate-700 ring-slate-300"
-          : value === "cancelled" || value === "returned" || value === "trashed"
-            ? "bg-rose-100 text-rose-800 ring-rose-300"
-            : value === "delivered"
-              ? "bg-emerald-200 text-emerald-900 ring-emerald-400"
-              : "bg-white text-slate-700 ring-slate-300";
-  const statusCardTone = (value: OrderStatus) =>
-    value === "delivered"
-      ? "bg-gradient-to-br from-emerald-100 via-emerald-50 to-teal-100 shadow-emerald-200"
-      : value === "shipped"
-        ? "bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 shadow-blue-200"
-        : value === "returned"
-          ? "bg-gradient-to-br from-rose-100 via-rose-50 to-orange-100 shadow-rose-200"
-          : value === "confirmed"
-            ? "bg-gradient-to-br from-teal-100 via-emerald-50 to-green-100 shadow-emerald-200"
-            : value === "cancelled"
-              ? "bg-gradient-to-br from-rose-100 via-rose-50 to-slate-100 shadow-rose-100"
-              : "bg-white shadow-slate-100";
-  const statusAvatarTone = (value: OrderStatus) =>
-    value === "delivered"
-      ? "bg-emerald-200 text-emerald-900"
-      : value === "shipped"
-        ? "bg-blue-200 text-blue-900"
-        : value === "returned" || value === "cancelled"
-          ? "bg-rose-200 text-rose-900"
-          : value === "confirmed"
-            ? "bg-teal-200 text-teal-900"
-            : "bg-slate-200 text-slate-800";
-  const statusEdge = (value: OrderStatus) =>
-    value === "delivered"
-      ? "border-emerald-400"
-      : value === "shipped"
-        ? "border-blue-400"
-        : value === "returned"
-          ? "border-rose-400"
-          : value === "confirmed"
-            ? "border-teal-300"
-            : "border-slate-300";
-  const trackingStatusLabel = (order: Order) =>
-    order.ecotrack_tracking
-      ? shippingStatus(order.ecotrack_status).label
-      : "غير مرفوعة";
   return {
     visibleOrders,
     counts,
@@ -201,11 +151,6 @@ export function useDashboardDerived(
     totalOrderCount,
     confirmedLifecycleCount,
     confirmationRate,
-    statusTone,
-    statusCardTone,
-    statusAvatarTone,
-    statusEdge,
-    trackingStatusLabel,
   };
 }
 export type DashboardDerived = ReturnType<typeof useDashboardDerived>;
