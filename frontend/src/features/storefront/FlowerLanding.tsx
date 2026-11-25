@@ -204,6 +204,9 @@ export default function FlowerLanding({
             <a className="mv-hero-cta" href="#order" ref={heroCtaRef}>
               اطلب الآن
             </a>
+            <p className="mv-hero-note">
+              لا تدفع شيئًا الآن · الدفع عند الاستلام
+            </p>
           </div>
         </section>
 
@@ -258,7 +261,7 @@ export default function FlowerLanding({
           ) : (
             <>
               <div className="mv-order-head">
-                <h2 id="order-title">اطلب الآن والدفع عند الاستلام</h2>
+                <h2 id="order-title">اختر عرضك وأكمل طلبك</h2>
                 <ol className="mv-progress" aria-label="خطوات الطلب">
                   {["اختر العرض", "بياناتك", "التأكيد"].map((label, i) => (
                     <li
